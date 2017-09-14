@@ -12,7 +12,8 @@ public class PlayerController : MonoBehaviour {
     // Use this for initialization
     void Start ()
     {
-		
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Confined;
 	}
 	
 	// Update is called once per frame
@@ -53,19 +54,19 @@ public class PlayerController : MonoBehaviour {
         }
         if (forward)
         {
-            position.x += (speed * Time.deltaTime);
+            position += (transform.forward * speed * Time.deltaTime);
         }
         if (backward)
         {
-            position.x -= (speed * Time.deltaTime);
+            position += (transform.forward * -1 * speed * Time.deltaTime);
         }
         if (left)
         {
-            position.z += (speed * Time.deltaTime);
+            position += (transform.right * -1 * speed * Time.deltaTime);
         }
         if (right)
         {
-            position.z -= (speed * Time.deltaTime);
+            position += (transform.right * speed * Time.deltaTime);
         }
         transform.position = position;
         
