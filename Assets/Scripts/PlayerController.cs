@@ -8,18 +8,20 @@ public class PlayerController : MonoBehaviour {
     private bool backward = false;
     private bool left = false;
     private bool right = false;
+    private Rigidbody body;
 
     // Use this for initialization
     void Start ()
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Confined;
+        body = GetComponent<Rigidbody>();
 	}
 	
 	// Update is called once per frame
 	void Update ()
     {
-        var position = transform.position;
+        var velocity = body.velocity;
         if (Input.GetKeyDown("w"))
         {
             forward = true;
@@ -27,6 +29,7 @@ public class PlayerController : MonoBehaviour {
         else if (Input.GetKeyUp("w"))
         {
             forward = false;
+            velocity = Vector3.zero;
         }
         if (Input.GetKeyDown("s"))
         {
@@ -35,6 +38,7 @@ public class PlayerController : MonoBehaviour {
         else if (Input.GetKeyUp("s"))
         {
             backward = false;
+            velocity = Vector3.zero;
         }
         if (Input.GetKeyDown("a"))
         {
@@ -43,6 +47,7 @@ public class PlayerController : MonoBehaviour {
         else if (Input.GetKeyUp("a"))
         {
             left = false;
+            velocity = Vector3.zero;
         }
         if (Input.GetKeyDown("d"))
         {
@@ -51,24 +56,26 @@ public class PlayerController : MonoBehaviour {
         else if (Input.GetKeyUp("d"))
         {
             right = false;
+            velocity = Vector3.zero;
         }
         if (forward)
         {
-            position += (transform.forward * speed * Time.deltaTime);
+            velocity = (transform.forward * speed);
         }
         if (backward)
         {
-            position += (transform.forward * -1 * speed * Time.deltaTime);
+            velocity = (transform.forward * -1 * speed);
         }
         if (left)
         {
-            position += (transform.right * -1 * speed * Time.deltaTime);
+            velocity = (transform.right * -1 * speed);
         }
         if (right)
         {
-            position += (transform.right * speed * Time.deltaTime);
+            velocity = (transform.right * speed);
         }
-        transform.position = position;
+        //transform.position = position;
+        body.velocity = velocity;
         
         Vector2 positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
         Vector2 mouseOnScreen = (Vector2)Camera.main.ScreenToViewportPoint(Input.mousePosition);
