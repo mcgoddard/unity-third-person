@@ -14,9 +14,8 @@ public class CameraController : MonoBehaviour {
 	void Update ()
     {
         var position = player.transform.position;
-        position.x -= 3;
-        position.y += 3;
-        position.z -= 3;
+        position.y += 5f;
+        position.z -= 0.5f;
         transform.position = position;
 	}
 }
