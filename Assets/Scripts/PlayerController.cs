@@ -5,20 +5,18 @@ using UnityEngine;
 public class PlayerController : MonoBehaviour {
 
     public float speed = 6f;            // The speed that the player will move at.
-    Vector3 movement;                   // The vector to store the direction of the player's movement.
-    int floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
-    float camRayLength = 100f;          // The length of the ray from the camera into the scene.
-    Rigidbody playerRigidbody;          // Reference to the player's rigidbody.
+    Vector3 m_movement;                   // The vector to store the direction of the player's movement.
+    int m_floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
+    Rigidbody m_playerRigidbody;          // Reference to the player's rigidbody.
 
 	void Start () {
 		
 	}
 
 	void Awake() {
-        Debug.Log("awake");
-        floorMask = LayerMask.GetMask ("Floor");
+        m_floorMask = LayerMask.GetMask ("Floor");
 
-        playerRigidbody = GetComponent <Rigidbody> ();
+        m_playerRigidbody = GetComponent <Rigidbody> ();
 	}
 	
 	// Update is called once per frame
@@ -34,13 +32,13 @@ public class PlayerController : MonoBehaviour {
 	void Move(float x, float z)
 	{
 		// Set the movement vector based on the axis input.
-        movement.Set (x, 0f, z);
+        m_movement.Set (x, 0f, z);
         
         // Normalise the movement vector and make it proportional to the speed per second.
-        movement = movement.normalized * speed * Time.deltaTime;
+        m_movement = m_movement.normalized * speed * Time.deltaTime;
 
         // Move the player to it's current position plus the movement.
-        transform.Translate(movement);
+        transform.Translate(m_movement);
 	}
 
     void Turning ()
