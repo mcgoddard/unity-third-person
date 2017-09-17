@@ -25,9 +25,9 @@ public class EnemyController : MonoBehaviour {
 		patrollingPoints = new Vector3[]
 		{
 			transform.position,
-		 	new Vector3(0, 0.6f, -6),
-			new Vector3(6, 0.6f, -6),
-			new Vector3(-8, 0.6f, 0),
+			new Vector3(0, transform.position.y, -6),
+			new Vector3(6, transform.position.y, -6),
+			new Vector3(-8, transform.position.y, 0),
 		};
 		patrollingWaitTimes = new float[]
 		{
