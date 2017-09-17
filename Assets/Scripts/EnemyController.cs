@@ -47,7 +47,7 @@ public class EnemyController : MonoBehaviour {
 		{
 			case EnemyState.Patrolling:
 				float distance = Vector3.Magnitude(transform.position - patrollingPoints[patrollingIndex]);
-				if (distance < 0.05)
+				if (distance < 0.1)
 				{
 					if (currentWaitingTime < patrollingWaitTimes[patrollingIndex])
 					{
