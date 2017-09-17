@@ -14,6 +14,8 @@ public class EnemyController : MonoBehaviour {
 	private EnemyState currentState = EnemyState.Patrolling;
 	private Vector3 investigationPoint;
 	private Vector3[] patrollingPoints;
+	private float currentWaitingTime;
+	private float[] patrollingWaitTimes;
 	private int patrollingIndex = 0;
 	private NavMeshAgent agent;
 
@@ -26,6 +28,13 @@ public class EnemyController : MonoBehaviour {
 		 	new Vector3(0, 0.6f, -6),
 			new Vector3(6, 0.6f, -6),
 			new Vector3(-8, 0.6f, 0),
+		};
+		patrollingWaitTimes = new float[]
+		{
+			5.0f,
+			2.0f,
+			2.0f,
+			2.0f,
 		};
 		agent = GetComponent<NavMeshAgent>();
 		agent.speed = 1.5f;
@@ -40,9 +49,17 @@ public class EnemyController : MonoBehaviour {
 				float distance = Vector3.Magnitude(transform.position - patrollingPoints[patrollingIndex]);
 				if (distance < 0.05)
 				{
-					patrollingIndex++;
-					patrollingIndex = patrollingIndex % patrollingPoints.Length;
-					agent.destination = patrollingPoints[patrollingIndex];
+					if (currentWaitingTime < patrollingWaitTimes[patrollingIndex])
+					{
+						currentWaitingTime += Time.deltaTime;
+					}
+					else
+					{
+						currentWaitingTime = 0;
+						patrollingIndex++;
+						patrollingIndex = patrollingIndex % patrollingPoints.Length;
+						agent.destination = patrollingPoints[patrollingIndex];
+					}
 				}
 				break;
 		}
