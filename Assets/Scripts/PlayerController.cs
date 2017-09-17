@@ -3,93 +3,71 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour {
-    private float speed = 10;
-    private bool forward = false;
-    private bool backward = false;
-    private bool left = false;
-    private bool right = false;
-    private Rigidbody body;
 
-    // Use this for initialization
-    void Start ()
-    {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Confined;
-        body = GetComponent<Rigidbody>();
+    public float speed = 6f;            // The speed that the player will move at.
+    Vector3 m_movement;                   // The vector to store the direction of the player's movement.
+    int m_floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
+    Rigidbody m_playerRigidbody;          // Reference to the player's rigidbody.
+
+	void Start () {
+		
+	}
+
+	void Awake() {
+        m_floorMask = LayerMask.GetMask ("Floor");
+
+        m_playerRigidbody = GetComponent <Rigidbody> ();
 	}
 	
 	// Update is called once per frame
-	void Update ()
+	void FixedUpdate () {
+        var x = Input.GetAxis("Horizontal");
+        var z = Input.GetAxis("Vertical");
+
+		Move(x,z);
+
+		Turning ();
+	}
+
+	void Move(float x, float z)
+	{
+		// Set the movement vector based on the axis input.
+        m_movement.Set (x, 0f, z);
+        
+        // Normalise the movement vector and make it proportional to the speed per second.
+        m_movement = m_movement.normalized * speed * Time.deltaTime;
+
+        // Move the player to it's current position plus the movement.
+        transform.Translate(m_movement);
+	}
+
+    void Turning ()
     {
-		// Update velocity
-        var velocity = body.velocity;
-        if (Input.GetKeyDown("w"))
-        {
-            forward = true;
-        }
-        else if (Input.GetKeyUp("w"))
-        {
-            forward = false;
-            velocity = Vector3.zero;
-        }
-        if (Input.GetKeyDown("s"))
-        {
-            backward = true;
-        }
-        else if (Input.GetKeyUp("s"))
-        {
-            backward = false;
-            velocity = Vector3.zero;
-        }
-        if (Input.GetKeyDown("a"))
-        {
-            left = true;
-        }
-        else if (Input.GetKeyUp("a"))
-        {
-            left = false;
-            velocity = Vector3.zero;
-        }
-        if (Input.GetKeyDown("d"))
-        {
-            right = true;
-        }
-        else if (Input.GetKeyUp("d"))
-        {
-            right = false;
-            velocity = Vector3.zero;
-        }
-        if (forward)
-        {
-            velocity = (transform.forward * speed);
-        }
-        if (backward)
-        {
-            velocity = (transform.forward * -1 * speed);
-        }
-        if (left)
-        {
-            velocity = (transform.right * -1 * speed);
-        }
-        if (right)
-        {
-            velocity = (transform.right * speed);
-        }
-		if (Mathf.Abs(body.velocity.x - velocity.x) > 0.01 ||
-		    Mathf.Abs(body.velocity.y - velocity.y) > 0.01 ||
-		    Mathf.Abs(body.velocity.z - velocity.z) > 0.01)
+    	// Generate a plane that intersects the transform's position with an upwards normal.
+    	Plane playerPlane = new Plane(Vector3.up, transform.position);
+ 
+    	// Generate a ray from the cursor position
+    	Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+ 
+    	// Determine the point where the cursor ray intersects the plane.
+    	// This will be the point that the object must look towards to be looking at the mouse.
+    	// Raycasting to a Plane object only gives us a distance, so we'll have to take the distance,
+    	//   then find the point along that ray that meets that distance.  This will be the point
+    	//   to look at.
+    	float hitdist = 0.0f;
+    	// If the ray is parallel to the plane, Raycast will return false.
+    	if (playerPlane.Raycast (ray, out hitdist)) 
 		{
-			body.velocity = velocity;
+        	// Get the point along the ray that hits the calculated distance.
+        	Vector3 targetPoint = ray.GetPoint(hitdist);
+ 
+        	// Determine the target rotation.  This is the rotation if the transform looks at the target point.
+        	Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
+ 
+        	// Smoothly rotate towards the target point.
+        	transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speed * Time.deltaTime);
 		}
-        // Update look direction
-        Vector2 positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
-        Vector2 mouseOnScreen = (Vector2)Camera.main.ScreenToViewportPoint(Input.mousePosition);
-        float angle = AngleBetweenTwoPoints(positionOnScreen, mouseOnScreen);
-        transform.rotation = Quaternion.Euler(new Vector3(0f, -angle, 0f));
     }
 
-    float AngleBetweenTwoPoints(Vector3 a, Vector3 b)
-    {
-        return Mathf.Atan2(a.y - b.y, a.x - b.x) * Mathf.Rad2Deg;
-    }
+
 }
