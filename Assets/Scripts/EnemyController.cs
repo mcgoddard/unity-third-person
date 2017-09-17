@@ -10,6 +10,8 @@ public class EnemyController : MonoBehaviour {
 		Attacking
 	}
 
+    private static float maxVisionDistance = 10;
+
 	private EnemyState currentState = EnemyState.Patrolling;
 	private Vector3[] patrollingPoints;
 	private float currentWaitingTime;
@@ -23,6 +25,8 @@ public class EnemyController : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
+        // Set up the patrol route and wait times for each point along that route
+        // The patrol route will loop once complete
 		patrollingPoints = new Vector3[]
 		{
 			transform.position,
@@ -37,10 +41,13 @@ public class EnemyController : MonoBehaviour {
 			2.0f,
 			2.0f,
 		};
+        // Set up the NavMeshAgent that will handle movement, avoid obstacles
 		agent = GetComponent<NavMeshAgent>();
 		agent.speed = 1.5f;
+        // Grab the components required for spotting the player
         leftCone = transform.Find("LeftVisionCone").GetComponent<VisionCone>();
         rightCone = transform.Find("RightVisionCone").GetComponent<VisionCone>();
+        // Get a reference to the player game object
         player = GameObject.Find("Player");
 	}
 	
@@ -54,13 +61,17 @@ public class EnemyController : MonoBehaviour {
                 agent.isStopped = true;
                 break;
 			case EnemyState.Patrolling:
+                // Check if we can spot a player, if so switch to attacking state
                 if (PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) && 
-                    CanRayCastPlayer(transform.position, player.transform.position))
+                    CanRayCastTarget(transform.position, player.transform.position, player))
                 {
                     currentState = EnemyState.Attacking;
                 }
+                // Otherwise continue the patrol route
                 else 
                 {
+                    // The NavMeshAgent is handling moving between points so simply check if we've reached a point
+                    // handle the wait time at that point, then set a new destination for the NavMeshAgent.
     				float distance = Vector3.Magnitude(transform.position - patrollingPoints[patrollingIndex]);
     				if (distance < 0.1)
     				{
@@ -96,8 +107,15 @@ public class EnemyController : MonoBehaviour {
     }
 
     // Helper to check for a raycast hit to the player (are they behind cover?)
-    private static bool CanRayCastPlayer(Vector3 position, Vector3 playerPosition)
+    private static bool CanRayCastTarget(Vector3 position, Vector3 playerPosition, GameObject target)
     {
-        return true;
+        Vector3 direction = playerPosition - position;
+        Ray visionRay = new Ray(position, direction);
+        RaycastHit hit;
+        if (Physics.Raycast(visionRay, out hit, maxVisionDistance))
+        {
+            return (hit.collider.gameObject == target);
+        }
+        return false;
     }
 }
