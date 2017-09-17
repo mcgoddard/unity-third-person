@@ -21,6 +21,7 @@ public class PlayerController : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+		// Update velocity
         var velocity = body.velocity;
         if (Input.GetKeyDown("w"))
         {
@@ -74,9 +75,13 @@ public class PlayerController : MonoBehaviour {
         {
             velocity = (transform.right * speed);
         }
-        //transform.position = position;
-        body.velocity = velocity;
-        
+		if (Mathf.Abs(body.velocity.x - velocity.x) > 0.01 ||
+		    Mathf.Abs(body.velocity.y - velocity.y) > 0.01 ||
+		    Mathf.Abs(body.velocity.z - velocity.z) > 0.01)
+		{
+			body.velocity = velocity;
+		}
+        // Update look direction
         Vector2 positionOnScreen = Camera.main.WorldToViewportPoint(transform.position);
         Vector2 mouseOnScreen = (Vector2)Camera.main.ScreenToViewportPoint(Input.mousePosition);
         float angle = AngleBetweenTwoPoints(positionOnScreen, mouseOnScreen);
