@@ -25,20 +25,22 @@ public class CameraController : MonoBehaviour {
 	void Update ()
     {
         var position = m_player.transform.position;
-        position.y += 5f;
+        position.y += 4.9f;
         position.z -= 0.5f;
         transform.position = position;
 
 
         //Can the camera see the player
         RaycastHit hit;
-        // Ray ray = Camera.main.ViewportPointToRay(new Vector3(m_screenWidth, m_screenHeight, 0));
-        // Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
         Transform cam = Camera.main.transform;
+        var ray = new Ray(cam.position, cam.forward);
 
-        if(Physics.Raycast(cam.position, cam.forward, out hit, 500))
+        Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
+
+        if(Physics.Raycast(ray, out hit, 500))
         {
-            if(hit.transform.tag == "Roof")
+            Debug.Log(hit.transform.tag);
+            if(hit.transform.tag != "Player")
             {
                 foreach(GameObject roof in m_roofs)
                 {

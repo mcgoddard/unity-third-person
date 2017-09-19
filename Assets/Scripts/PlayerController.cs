@@ -24,9 +24,7 @@ public class PlayerController : MonoBehaviour {
 	void FixedUpdate () {
         var x = Input.GetAxis("Horizontal");
         var z = Input.GetAxis("Vertical");
-
-		Debug.Log("x:" + x + " z: " + z);
-
+		
 		Move(x,z);
 
 		Turning ();

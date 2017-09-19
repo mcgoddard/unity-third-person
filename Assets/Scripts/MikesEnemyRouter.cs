@@ -27,7 +27,7 @@ public class MikesEnemyRouter : EnemyRouter {
     }
 
     // Access this singleton using the Instance property
-    public static EnemyRouter Instance
+    public static new EnemyRouter Instance
     {
         get
         {
