@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class PlayerController : MonoBehaviour {
 
@@ -24,6 +25,8 @@ public class PlayerController : MonoBehaviour {
         var x = Input.GetAxis("Horizontal");
         var z = Input.GetAxis("Vertical");
 
+		Debug.Log("x:" + x + " z: " + z);
+
 		Move(x,z);
 
 		Turning ();
@@ -31,14 +34,24 @@ public class PlayerController : MonoBehaviour {
 
 	void Move(float x, float z)
 	{
-		// Set the movement vector based on the axis input.
-        m_movement.Set (x, 0f, z);
-        
-        // Normalise the movement vector and make it proportional to the speed per second.
-        m_movement = m_movement.normalized * speed * Time.deltaTime;
+		//If the player is still, stop moving
+		if((Math.Abs(z) > 0.5f) || (Math.Abs(x) > 0.5f))
+		{
+			// Set the movement vector based on the axis input.
+			m_movement.Set (x, 0f, z);
+			
+			// Normalise the movement vector and make it proportional to the speed per second.
+			m_movement = m_movement.normalized * speed * Time.deltaTime;
 
-        // Move the player to it's current position plus the movement.
-        transform.Translate(m_movement);
+			// Move the player to it's current position plus the movement.
+			transform.Translate(m_movement);
+			
+		} else {
+			// Stop moving
+			m_movement.Set (0f, 0f, 0f);
+			transform.Translate(m_movement);
+		}
+
 	}
 
     void Turning ()

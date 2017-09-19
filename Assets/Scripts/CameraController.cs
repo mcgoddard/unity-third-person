@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour {
-    private GameObject player;
+    private GameObject m_player;
 
     private float m_screenWidth;
     private float m_screenHeight;
@@ -13,7 +13,7 @@ public class CameraController : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        player = GameObject.Find("Player");
+        m_player = GameObject.Find("Player");
 
         m_screenWidth = Screen.width / 2;
         m_screenHeight = Screen.height / 2;
@@ -24,7 +24,7 @@ public class CameraController : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-        var position = player.transform.position;
+        var position = m_player.transform.position;
         position.y += 5f;
         position.z -= 0.5f;
         transform.position = position;
@@ -38,7 +38,6 @@ public class CameraController : MonoBehaviour {
 
         if(Physics.Raycast(cam.position, cam.forward, out hit, 500))
         {
-//            Debug.Log("Can see: " + hit.transform.tag);
             if(hit.transform.tag == "Roof")
             {
                 foreach(GameObject roof in m_roofs)
@@ -51,10 +50,7 @@ public class CameraController : MonoBehaviour {
                     SetTransparency(roof, 1f);
                 }
             }
-        } else {
-            Debug.Log("player blocked");
-        }    
-
+        }
 	}
 
 
