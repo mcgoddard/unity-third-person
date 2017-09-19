@@ -14,6 +14,7 @@ public class EnemyController : MonoBehaviour {
     private const float maxVisionDistance = 10;
     private const float walkingSpeed = 1.5f;
     private const float chaseSpeed = 3.0f;
+    private const float rotationSpeed = 3.0f;
 
 	private EnemyState currentState = EnemyState.Patrolling;
 	private float currentWaitingTime;
@@ -61,27 +62,31 @@ public class EnemyController : MonoBehaviour {
                     // The NavMeshAgent is handling moving between points so simply check if we've reached a point
                     // handle the wait time at that point, then set a new destination for the NavMeshAgent.
                     float distance = Vector3.Magnitude(transform.position - Router.GetPoint(Id, patrollingIndex).Position);
-    				if (distance < 0.1)
-    				{
+                    if (distance < 0.1)
+                    {
                         if (currentWaitingTime < Router.GetPoint(Id, patrollingIndex).WaitTime)
-    					{
+                        {
                             if (currentWaitingTime < 0.001)
                             {
                                 // Set turn direction
-                                agent.updatePosition = false;
-                                agent.destination = transform.position + Router.GetPoint(Id, patrollingIndex).Rotation.normalized;
+                                agent.isStopped = true;
                             }
-    						currentWaitingTime += Time.deltaTime;
-    					}
-    					else
-    					{
-    						currentWaitingTime = 0;
-    						patrollingIndex++;
+                            Vector3 destinationOffset = Quaternion.Euler(Router.GetPoint(Id, patrollingIndex).Rotation) * Vector3.forward;
+                            Vector3 destination = transform.position + destinationOffset;
+                            Vector3 rotation = Vector3.Lerp(transform.rotation.eulerAngles, Router.GetPoint(Id, patrollingIndex).Rotation, Time.deltaTime * rotationSpeed);
+                            transform.rotation = Quaternion.Euler(rotation);
+                            currentWaitingTime += Time.deltaTime;
+                        }
+                        else
+                        {
+                            // Set new destination
+                            currentWaitingTime = 0;
+                            patrollingIndex++;
                             patrollingIndex = (uint)(patrollingIndex % Router.GetRoute(Id).Length);
-                            agent.updatePosition = true;
                             agent.destination = Router.GetPoint(Id, patrollingIndex).Position;
-    					}
-    				}
+                            agent.isStopped = false;
+                        }
+                    }
                 }
 				break;
 		}

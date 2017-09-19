@@ -15,7 +15,7 @@ public class MikesEnemyRouter : EnemyRouter {
             new PatrolPoint(new Vector3(0.56f, 0.98f, 0), new Vector3(0, 180, 0), 5.0f),
             new PatrolPoint(new Vector3(0, 0.98f, -6), new Vector3(0, 180, 0), 2.0f),
             new PatrolPoint(new Vector3(6, 0.98f, -6), new Vector3(0, 180, 0), 2.0f),
-            new PatrolPoint(new Vector3(-8, 0.98f, 0), new Vector3(0, -45, 0), 2.0f),
+            new PatrolPoint(new Vector3(-8, 0.98f, 0), new Vector3(0, 315, 0), 2.0f),
         };
         routes[1] = new PatrolPoint[]
         {
