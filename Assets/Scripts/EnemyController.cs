@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using System;
 
 public class EnemyController : MonoBehaviour {
 	public enum EnemyState
@@ -10,40 +11,27 @@ public class EnemyController : MonoBehaviour {
 		Attacking
 	}
 
-    private static float maxVisionDistance = 10;
+    private const float maxVisionDistance = 10;
+    private const float walkingSpeed = 1.5f;
+    private const float chaseSpeed = 3.0f;
 
 	private EnemyState currentState = EnemyState.Patrolling;
-	private Vector3[] patrollingPoints;
 	private float currentWaitingTime;
-	private float[] patrollingWaitTimes;
-	private int patrollingIndex = 0;
+	private uint patrollingIndex = 0;
 	private NavMeshAgent agent;
     private VisionCone leftCone;
     private VisionCone rightCone;
     private GameObject player;
 
+    public EnemyRouter Router;
+    public uint Id;
+
 	// Use this for initialization
 	void Start () 
 	{
-        // Set up the patrol route and wait times for each point along that route
-        // The patrol route will loop once complete
-		patrollingPoints = new Vector3[]
-		{
-			transform.position,
-			new Vector3(0, transform.position.y, -6),
-			new Vector3(6, transform.position.y, -6),
-			new Vector3(-8, transform.position.y, 0),
-		};
-		patrollingWaitTimes = new float[]
-		{
-			5.0f,
-			2.0f,
-			2.0f,
-			2.0f,
-		};
         // Set up the NavMeshAgent that will handle movement, avoid obstacles
 		agent = GetComponent<NavMeshAgent>();
-		agent.speed = 1.5f;
+        agent.speed = walkingSpeed;
         // Grab the components required for spotting the player
         leftCone = transform.Find("LeftVisionCone").GetComponent<VisionCone>();
         rightCone = transform.Find("RightVisionCone").GetComponent<VisionCone>();
@@ -57,8 +45,8 @@ public class EnemyController : MonoBehaviour {
 		switch (currentState) 
 		{
             case EnemyState.Attacking:
-                Debug.Log("Attacking");
-                agent.isStopped = true;
+                agent.speed = chaseSpeed;
+                agent.destination = player.transform.position;
                 break;
 			case EnemyState.Patrolling:
                 // Check if we can spot a player, if so switch to attacking state
@@ -72,19 +60,26 @@ public class EnemyController : MonoBehaviour {
                 {
                     // The NavMeshAgent is handling moving between points so simply check if we've reached a point
                     // handle the wait time at that point, then set a new destination for the NavMeshAgent.
-    				float distance = Vector3.Magnitude(transform.position - patrollingPoints[patrollingIndex]);
+                    float distance = Vector3.Magnitude(transform.position - Router.GetPoint(Id, patrollingIndex).Position);
     				if (distance < 0.1)
     				{
-    					if (currentWaitingTime < patrollingWaitTimes[patrollingIndex])
+                        if (currentWaitingTime < Router.GetPoint(Id, patrollingIndex).WaitTime)
     					{
+                            if (currentWaitingTime < 0.001)
+                            {
+                                // Set turn direction
+                                agent.updatePosition = false;
+                                agent.destination = transform.position + Router.GetPoint(Id, patrollingIndex).Rotation.normalized;
+                            }
     						currentWaitingTime += Time.deltaTime;
     					}
     					else
     					{
     						currentWaitingTime = 0;
     						patrollingIndex++;
-    						patrollingIndex = patrollingIndex % patrollingPoints.Length;
-    						agent.destination = patrollingPoints[patrollingIndex];
+                            patrollingIndex = (uint)(patrollingIndex % Router.GetRoute(Id).Length);
+                            agent.updatePosition = true;
+                            agent.destination = Router.GetPoint(Id, patrollingIndex).Position;
     					}
     				}
                 }
