@@ -51,7 +51,12 @@ public class EnemyController : MonoBehaviour {
 		switch (currentState) 
 		{
             case EnemyState.Investigating:
-                if (currentInvestigationTime < investigationTime)
+                if (PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) && 
+                    CanRayCastTarget(transform.position, player.transform.position, player))
+                {
+                    currentState = EnemyState.Attacking;
+                }
+                else if (currentInvestigationTime < investigationTime)
                 {
                     currentInvestigationTime += Time.deltaTime;
                 }
@@ -63,7 +68,7 @@ public class EnemyController : MonoBehaviour {
                 break;
             case EnemyState.Attacking:
                 float playerDistance = (transform.position - player.transform.position).magnitude;
-                if (playerDistance > maxVisionDistance && !CanRayCastTarget(transform.position, player.transform.position, player))
+                if (playerDistance > maxVisionDistance || !CanRayCastTarget(transform.position, player.transform.position, player))
                 {
                     currentState = EnemyState.Investigating;
                     investigationPoint = player.transform.position;
