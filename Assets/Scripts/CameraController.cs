@@ -39,7 +39,7 @@ public class CameraController : MonoBehaviour {
 
         if(Physics.Raycast(ray, out hit, 500))
         {
-            Debug.Log(hit.transform.tag);
+//            Debug.Log(hit.transform.tag);
             if(hit.transform.tag != "Player")
             {
                 foreach(GameObject roof in m_roofs)

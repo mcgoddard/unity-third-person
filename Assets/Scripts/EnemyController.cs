@@ -8,13 +8,16 @@ public class EnemyController : MonoBehaviour {
 	public enum EnemyState
 	{
 		Patrolling,
-		Attacking
+		Attacking,
+        Investigating
 	}
 
     private const float maxVisionDistance = 10;
     private const float walkingSpeed = 1.5f;
     private const float chaseSpeed = 3.0f;
     private const float rotationSpeed = 3.0f;
+    private const float attackingDistance = 3.0f;
+    private const float investigationTime = 10.0f;
 
 	private EnemyState currentState = EnemyState.Patrolling;
 	private float currentWaitingTime;
@@ -23,6 +26,8 @@ public class EnemyController : MonoBehaviour {
     private VisionCone leftCone;
     private VisionCone rightCone;
     private GameObject player;
+    private Vector3 investigationPoint;
+    private float currentInvestigationTime = 0.0f;
 
     public EnemyRouter Router;
     public uint Id;
@@ -45,9 +50,34 @@ public class EnemyController : MonoBehaviour {
 	{
 		switch (currentState) 
 		{
+            case EnemyState.Investigating:
+                if (currentInvestigationTime < investigationTime)
+                {
+                    currentInvestigationTime += Time.deltaTime;
+                }
+                else
+                {
+                    currentInvestigationTime = 0.0f;
+                    currentState = EnemyState.Patrolling;
+                }
+                break;
             case EnemyState.Attacking:
-                agent.speed = chaseSpeed;
-                agent.destination = player.transform.position;
+                float playerDistance = (transform.position - player.transform.position).magnitude;
+                if (playerDistance > maxVisionDistance && !CanRayCastTarget(transform.position, player.transform.position, player))
+                {
+                    currentState = EnemyState.Investigating;
+                    investigationPoint = player.transform.position;
+                }
+                else if (playerDistance < attackingDistance)
+                {
+                    agent.isStopped = true;
+                }
+                else
+                {
+                    agent.isStopped = false;
+                    agent.speed = chaseSpeed;
+                    agent.destination = player.transform.position;
+                }
                 break;
 			case EnemyState.Patrolling:
                 // Check if we can spot a player, if so switch to attacking state
@@ -71,8 +101,6 @@ public class EnemyController : MonoBehaviour {
                                 // Set turn direction
                                 agent.isStopped = true;
                             }
-                            Vector3 destinationOffset = Quaternion.Euler(Router.GetPoint(Id, patrollingIndex).Rotation) * Vector3.forward;
-                            Vector3 destination = transform.position + destinationOffset;
                             Vector3 rotation = Vector3.Lerp(transform.rotation.eulerAngles, Router.GetPoint(Id, patrollingIndex).Rotation, Time.deltaTime * rotationSpeed);
                             transform.rotation = Quaternion.Euler(rotation);
                             currentWaitingTime += Time.deltaTime;
@@ -86,6 +114,11 @@ public class EnemyController : MonoBehaviour {
                             agent.destination = Router.GetPoint(Id, patrollingIndex).Position;
                             agent.isStopped = false;
                         }
+                    }
+                    else if (agent.destination != Router.GetPoint(Id, patrollingIndex).Position)
+                    {
+                        agent.destination = Router.GetPoint(Id, patrollingIndex).Position;
+                        agent.isStopped = false;
                     }
                 }
 				break;
@@ -107,9 +140,9 @@ public class EnemyController : MonoBehaviour {
     }
 
     // Helper to check for a raycast hit to the player (are they behind cover?)
-    private static bool CanRayCastTarget(Vector3 position, Vector3 playerPosition, GameObject target)
+    private static bool CanRayCastTarget(Vector3 position, Vector3 targetPosition, GameObject target)
     {
-        Vector3 direction = playerPosition - position;
+        Vector3 direction = targetPosition - position;
         Ray visionRay = new Ray(position, direction);
         RaycastHit hit;
         if (Physics.Raycast(visionRay, out hit, maxVisionDistance))
