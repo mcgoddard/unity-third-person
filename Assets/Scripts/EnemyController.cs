@@ -25,7 +25,9 @@ public class EnemyController : MonoBehaviour {
     // Distance at which we cannot lose the player during a chase, even if LoS is broken
     private const float minLosingDistance = 5.0f;
     // Time to spend investigating before returning to the patrol
-    private const float investigationTime = 10.0f;
+    private const float investigationTime = 20.0f;
+    // Distance from a target at which to assume it's arrived
+    private const float basicallyThereDistance = 0.1f;
 
 	private EnemyState currentState = EnemyState.Patrolling;
 	private uint patrollingIndex = 0;
@@ -40,7 +42,7 @@ public class EnemyController : MonoBehaviour {
     // The point at which the player was lost investigation will centre around this point
     private Vector3 investigationPoint;
     // The current point we'll navigate to in our investigation
-    private Vector3 investigationTarget;
+    private Nullable<Vector3> investigationTarget = null;
 
     public EnemyRouter Router;
     public uint Id;
@@ -64,9 +66,30 @@ public class EnemyController : MonoBehaviour {
 		switch (currentState) 
 		{
             case EnemyState.Investigating:
+                // Invesigate another point
+                if (!investigationTarget.HasValue || (transform.position - investigationTarget.Value).magnitude < basicallyThereDistance)
+                {
+                    investigationTarget = null;
+                    while (!investigationTarget.HasValue)
+                    {
+                        float rotation = UnityEngine.Random.value * 360;
+                        float distance = UnityEngine.Random.value * 5.0f;
+                        Vector3 newInvestigationTarget = (Quaternion.Euler(new Vector3(0, rotation, 0)) * new Vector3(0, 0, distance)) + investigationPoint;
+                        NavMeshPath path = new NavMeshPath();
+                        agent.CalculatePath(newInvestigationTarget, path);
+                        if (path.status == NavMeshPathStatus.PathComplete)
+                        {
+                            agent.isStopped = false;
+                            investigationTarget = newInvestigationTarget;
+                            agent.destination = newInvestigationTarget;
+                        }
+                    }
+                }
                 if (PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) && 
                     CanRayCastTarget(transform.position, player.transform.position, player))
                 {
+                    investigationTarget = null;
+                    currentInvestigationTime = 0.0f;
                     currentState = EnemyState.Attacking;
                 }
                 else if (currentInvestigationTime < investigationTime)
@@ -75,6 +98,7 @@ public class EnemyController : MonoBehaviour {
                 }
                 else
                 {
+                    investigationTarget = null;
                     currentInvestigationTime = 0.0f;
                     currentState = EnemyState.Patrolling;
                 }
@@ -110,7 +134,7 @@ public class EnemyController : MonoBehaviour {
                     // The NavMeshAgent is handling moving between points so simply check if we've reached a point
                     // handle the wait time at that point, then set a new destination for the NavMeshAgent.
                     float distance = Vector3.Magnitude(transform.position - Router.GetPoint(Id, patrollingIndex).Position);
-                    if (distance < 0.1)
+                    if (distance < basicallyThereDistance)
                     {
                         if (currentWaitingTime < Router.GetPoint(Id, patrollingIndex).WaitTime)
                         {
