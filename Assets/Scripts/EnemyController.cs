@@ -12,22 +12,35 @@ public class EnemyController : MonoBehaviour {
         Investigating
 	}
 
+    // How far can we detect the player during a chase
     private const float maxVisionDistance = 10;
+    // Speed whilst patrolling/investigating
     private const float walkingSpeed = 1.5f;
+    // Speed whilst attacking
     private const float chaseSpeed = 3.0f;
+    // Rotation speed modifier for turning during patrols
     private const float rotationSpeed = 3.0f;
+    // Distance to approach the player during a chase
     private const float attackingDistance = 3.0f;
+    // Distance at which we cannot lose the player during a chase, even if LoS is broken
+    private const float minLosingDistance = 5.0f;
+    // Time to spend investigating before returning to the patrol
     private const float investigationTime = 10.0f;
 
 	private EnemyState currentState = EnemyState.Patrolling;
-	private float currentWaitingTime;
 	private uint patrollingIndex = 0;
 	private NavMeshAgent agent;
     private VisionCone leftCone;
     private VisionCone rightCone;
     private GameObject player;
-    private Vector3 investigationPoint;
+    // How long we have been waiting (at the current patrol point)
+    private float currentWaitingTime;
+    // How long we have been investigating
     private float currentInvestigationTime = 0.0f;
+    // The point at which the player was lost investigation will centre around this point
+    private Vector3 investigationPoint;
+    // The current point we'll navigate to in our investigation
+    private Vector3 investigationTarget;
 
     public EnemyRouter Router;
     public uint Id;
@@ -68,7 +81,7 @@ public class EnemyController : MonoBehaviour {
                 break;
             case EnemyState.Attacking:
                 float playerDistance = (transform.position - player.transform.position).magnitude;
-                if (playerDistance > maxVisionDistance || !CanRayCastTarget(transform.position, player.transform.position, player))
+                if (playerDistance > maxVisionDistance || (playerDistance > minLosingDistance && !CanRayCastTarget(transform.position, player.transform.position, player)))
                 {
                     currentState = EnemyState.Investigating;
                     investigationPoint = player.transform.position;
