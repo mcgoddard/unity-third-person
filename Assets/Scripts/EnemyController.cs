@@ -28,6 +28,8 @@ public class EnemyController : MonoBehaviour {
     private const float investigationTime = 20.0f;
     // Distance from a target at which to assume it's arrived
     private const float basicallyThereDistance = 0.1f;
+    // Furthest distance an investigation point can be from the last place a player was spotted
+    private const float maxInvestigationDistance = 5.0f;
 
 	private EnemyState currentState = EnemyState.Patrolling;
 	private uint patrollingIndex = 0;
@@ -73,7 +75,7 @@ public class EnemyController : MonoBehaviour {
                     while (!investigationTarget.HasValue)
                     {
                         float rotation = UnityEngine.Random.value * 360;
-                        float distance = UnityEngine.Random.value * 5.0f;
+                        float distance = UnityEngine.Random.value * maxInvestigationDistance;
                         Vector3 newInvestigationTarget = (Quaternion.Euler(new Vector3(0, rotation, 0)) * new Vector3(0, 0, distance)) + investigationPoint;
                         NavMeshPath path = new NavMeshPath();
                         agent.CalculatePath(newInvestigationTarget, path);
