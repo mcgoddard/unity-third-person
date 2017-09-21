@@ -204,4 +204,9 @@ public class EnemyController : MonoBehaviour {
         }
         return false;
     }
+
+    public void TakeDamage(float damage)
+    {
+        // TODO
+    }
 }

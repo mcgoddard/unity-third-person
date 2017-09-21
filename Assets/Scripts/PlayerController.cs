@@ -6,6 +6,7 @@ using System;
 public class PlayerController : MonoBehaviour {
     private const float fireDistance = 20.0f;
     private const float fireCooldown = 0.5f;
+    private const float damage = 50.0f;
 
     public float speed = 6f;              // The speed that the player will move at.
     Vector3 m_movement;                   // The vector to store the direction of the player's movement.
@@ -43,6 +44,11 @@ public class PlayerController : MonoBehaviour {
                 gunRenderer.SetPosition(1, hit.point);
                 gunRenderer.enabled = true;
                 currentFireCooldown = fireCooldown;
+                EnemyController hitEnemy = hit.collider.gameObject.GetComponent<EnemyController>();
+                if (hitEnemy != null)
+                {
+                    hitEnemy.TakeDamage(damage);
+                }
             }
         }
     }
