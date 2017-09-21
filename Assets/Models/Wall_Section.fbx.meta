@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: 8ed932f7cc1bf477c9e9915641ab791b
-timeCreated: 1506015266
+guid: 55156c9ca753449ee9583c4ca532e6c9
+timeCreated: 1506023739
 licenseType: Free
 ModelImporter:
   serializedVersion: 21
@@ -9,11 +9,11 @@ ModelImporter:
     400000: //RootNode
     2300000: //RootNode
     3300000: //RootNode
-    4300000: Circle
+    4300000: Cube
   materials:
     importMaterials: 1
     materialName: 2
-    materialSearch: 1
+    materialSearch: 2
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0

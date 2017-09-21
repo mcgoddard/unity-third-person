@@ -1,15 +1,25 @@
 fileFormatVersion: 2
-guid: 8ed932f7cc1bf477c9e9915641ab791b
-timeCreated: 1506015266
+guid: 729b997f0b11842f68813cfaa047193a
+timeCreated: 1506023746
 licenseType: Free
 ModelImporter:
   serializedVersion: 21
   fileIDToRecycleName:
-    100000: //RootNode
-    400000: //RootNode
-    2300000: //RootNode
-    3300000: //RootNode
-    4300000: Circle
+    100000: Lock
+    100002: //RootNode
+    100004: Safe Door
+    400000: Lock
+    400002: //RootNode
+    400004: Safe Door
+    2300000: Lock
+    2300002: //RootNode
+    2300004: Safe Door
+    3300000: Lock
+    3300002: //RootNode
+    3300004: Safe Door
+    4300000: Safe Body
+    4300002: Safe Door
+    4300004: Lock
   materials:
     importMaterials: 1
     materialName: 2
