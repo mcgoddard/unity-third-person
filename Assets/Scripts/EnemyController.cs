@@ -30,6 +30,8 @@ public class EnemyController : MonoBehaviour {
     private const float basicallyThereDistance = 0.1f;
     // Furthest distance an investigation point can be from the last place a player was spotted
     private const float maxInvestigationDistance = 5.0f;
+    // Number of frames to recalculate routing
+    private const int recalculateFrameTimer = 10;
 
 	private EnemyState currentState = EnemyState.Patrolling;
 	private uint patrollingIndex = 0;
@@ -45,6 +47,8 @@ public class EnemyController : MonoBehaviour {
     private Vector3 investigationPoint;
     // The current point we'll navigate to in our investigation
     private Nullable<Vector3> investigationTarget = null;
+    // How many frames since the last refresh
+    private int currentFrameTimer = 0;
 
     public EnemyRouter Router;
     public uint Id;
@@ -116,11 +120,16 @@ public class EnemyController : MonoBehaviour {
                 {
                     agent.isStopped = true;
                 }
-                else
+                else if (currentFrameTimer >= recalculateFrameTimer)
                 {
                     agent.isStopped = false;
                     agent.speed = chaseSpeed;
                     agent.destination = player.transform.position;
+                    currentFrameTimer = 0;
+                }
+                else
+                {
+                    currentFrameTimer++;
                 }
                 break;
 			case EnemyState.Patrolling:
