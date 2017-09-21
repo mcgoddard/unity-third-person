@@ -4,30 +4,57 @@ using UnityEngine;
 using System;
 
 public class PlayerController : MonoBehaviour {
+    private const float fireDistance = 20.0f;
+    private const float fireCooldown = 0.5f;
 
-    public float speed = 6f;            // The speed that the player will move at.
+    public float speed = 6f;              // The speed that the player will move at.
     Vector3 m_movement;                   // The vector to store the direction of the player's movement.
     int m_floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
     Rigidbody m_playerRigidbody;          // Reference to the player's rigidbody.
+    LineRenderer gunRenderer;             // Reference to the player's line renderer to use for gunfire.
+    float currentFireCooldown = 0;        // How much cooldown is left before the player can fire again.
 
-	void Start () {
-		
+	void Start() {
+        gunRenderer = GetComponent<LineRenderer>();
 	}
 
 	void Awake() {
-        m_floorMask = LayerMask.GetMask ("Floor");
+        m_floorMask = LayerMask.GetMask("Floor");
 
-        m_playerRigidbody = GetComponent <Rigidbody> ();
+        m_playerRigidbody = GetComponent<Rigidbody>();
 	}
+
+    void Update() {
+        if (currentFireCooldown > 0)
+        {
+            currentFireCooldown -= Time.deltaTime;
+        }
+        if (gunRenderer.enabled)
+        {
+            gunRenderer.enabled = false;
+        }
+        if (Input.GetMouseButtonDown(0) && currentFireCooldown <= 0)
+        {
+            RaycastHit hit = new RaycastHit();
+            Ray bulletRay = new Ray(transform.position, transform.rotation * Vector3.forward);
+            if (Physics.Raycast(bulletRay, out hit, fireDistance))
+            {
+                gunRenderer.SetPosition(0, transform.position);
+                gunRenderer.SetPosition(1, hit.point);
+                gunRenderer.enabled = true;
+                currentFireCooldown = fireCooldown;
+            }
+        }
+    }
 	
 	// Update is called once per frame
-	void FixedUpdate () {
+	void FixedUpdate() {
         var x = Input.GetAxis("Horizontal");
         var z = Input.GetAxis("Vertical");
 		
 		Move(x,z);
 
-		Turning ();
+		Turning();
 	}
 
 	void Move(float x, float z)
@@ -52,13 +79,13 @@ public class PlayerController : MonoBehaviour {
 
 	}
 
-    void Turning ()
+    void Turning()
     {
     	// Generate a plane that intersects the transform's position with an upwards normal.
     	Plane playerPlane = new Plane(Vector3.up, transform.position);
  
     	// Generate a ray from the cursor position
-    	Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
+    	Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
  
     	// Determine the point where the cursor ray intersects the plane.
     	// This will be the point that the object must look towards to be looking at the mouse.
@@ -67,7 +94,7 @@ public class PlayerController : MonoBehaviour {
     	//   to look at.
     	float hitdist = 0.0f;
     	// If the ray is parallel to the plane, Raycast will return false.
-    	if (playerPlane.Raycast (ray, out hitdist)) 
+    	if (playerPlane.Raycast(ray, out hitdist)) 
 		{
         	// Get the point along the ray that hits the calculated distance.
         	Vector3 targetPoint = ray.GetPoint(hitdist);
