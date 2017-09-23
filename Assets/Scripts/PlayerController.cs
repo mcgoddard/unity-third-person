@@ -47,7 +47,6 @@ public class PlayerController : MonoBehaviour {
             currentReloadCooldown -= Time.deltaTime;
             if (currentReloadCooldown <= 0)
             {
-                Debug.Log("Reload complete");
                 int toReload = magazineCount - currentMagazineCount;
                 int availableForReload = currentRemainingAmmo >= toReload ? toReload : currentRemainingAmmo;
                 currentMagazineCount += availableForReload;
@@ -60,10 +59,12 @@ public class PlayerController : MonoBehaviour {
             {
                 currentMagazineCount -= 1;
                 RaycastHit hit = new RaycastHit();
-                Ray bulletRay = new Ray(transform.position, transform.rotation * Vector3.forward);
+                Vector3 fireFrom = transform.position;
+                fireFrom.y += 1.18f;
+                Ray bulletRay = new Ray(fireFrom, transform.rotation * Vector3.forward);
                 if (Physics.Raycast(bulletRay, out hit, fireDistance))
                 {
-                    gunRenderer.SetPosition(0, transform.position);
+                    gunRenderer.SetPosition(0, fireFrom);
                     gunRenderer.SetPosition(1, hit.point);
                     gunRenderer.enabled = true;
                     currentFireCooldown = fireCooldown;
@@ -76,7 +77,6 @@ public class PlayerController : MonoBehaviour {
             }
             else if (currentMagazineCount < magazineCount && currentRemainingAmmo > 0 && (Input.GetMouseButtonDown(0) || Input.GetKeyDown("r")))
             {
-                Debug.Log("Reloading");
                 currentReloadCooldown = reloadCooldown;
             }
         }
