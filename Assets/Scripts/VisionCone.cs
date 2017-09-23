@@ -27,6 +27,8 @@ public class VisionCone : MonoBehaviour {
             line.GetPositions(positions);
             var start = transform.position;
             var end = transform.position;
+            start.y += 1.6f;
+            end.y += 1.6f;
             if (Left)
             {
                 end.x += 5;
