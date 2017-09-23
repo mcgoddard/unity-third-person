@@ -4,27 +4,32 @@ using UnityEngine;
 using System;
 
 public class PlayerController : MonoBehaviour {
-    private const float fireDistance = 20.0f;
-    private const float fireCooldown = 0.2f;
-    private const float reloadCooldown = 2.0f;
-    private const float damage = 50.0f;
-    private const int startAmmo = 18;
-    private const int magazineCount = 6;
+    private const float fireDistance = 20.0f;   // Max distance of a shot
+    private const float fireCooldown = 0.2f;    // Time between shots
+    private const float reloadCooldown = 2.0f;  // Time to reload
+    private const float damage = 50.0f;   // Amount of damage to deal on a successful shot
+    private const int startAmmo = 18;     // Amount of (unloaded) ammo at starting
+    private const int magazineCount = 6;  // Number of rounds when the weapon is fully loaded
+
+    public const float MaxHealth = 100;   // How much health the player has at starting
 
     public float speed = 6f;              // The speed that the player will move at.
+
     Vector3 m_movement;                   // The vector to store the direction of the player's movement.
     int m_floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
     Rigidbody m_playerRigidbody;          // Reference to the player's rigidbody.
     LineRenderer gunRenderer;             // Reference to the player's line renderer to use for gunfire.
-    float currentFireCooldown = -0.1f;        // How much cooldown is left before the player can fire again.
-    float currentReloadCooldown = -0.1f;
-    int currentRemainingAmmo;
-    int currentMagazineCount;
+    float currentFireCooldown = -0.1f;    // How much cooldown is left before the player can fire again.
+    float currentReloadCooldown = -0.1f;  // How much cooldown is left before the player has reloaded. 
+    int currentRemainingAmmo;             // Amount of (unloaded) ammo remaining
+    int currentMagazineCount;             // Number of currently loaded bullets
+    float currentHealth;                  // Current health
 
 	void Start() {
         gunRenderer = GetComponent<LineRenderer>();
         currentRemainingAmmo = startAmmo - magazineCount;
         currentMagazineCount = magazineCount;
+        currentHealth = MaxHealth;
 	}
 
 	void Awake() {
@@ -34,6 +39,7 @@ public class PlayerController : MonoBehaviour {
 	}
 
     void Update() {
+        currentHealth -= 1;
         if (gunRenderer.enabled)
         {
             gunRenderer.enabled = false;
@@ -142,5 +148,11 @@ public class PlayerController : MonoBehaviour {
 		}
     }
 
-
+    public float CurrentHealth
+    {
+        get
+        {
+            return currentHealth;
+        }
+    }
 }
