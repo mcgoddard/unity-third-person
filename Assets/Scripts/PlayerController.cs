@@ -5,18 +5,26 @@ using System;
 
 public class PlayerController : MonoBehaviour {
     private const float fireDistance = 20.0f;
-    private const float fireCooldown = 0.5f;
+    private const float fireCooldown = 0.2f;
+    private const float reloadCooldown = 2.0f;
     private const float damage = 50.0f;
+    private const int startAmmo = 18;
+    private const int magazineCount = 6;
 
     public float speed = 6f;              // The speed that the player will move at.
     Vector3 m_movement;                   // The vector to store the direction of the player's movement.
     int m_floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
     Rigidbody m_playerRigidbody;          // Reference to the player's rigidbody.
     LineRenderer gunRenderer;             // Reference to the player's line renderer to use for gunfire.
-    float currentFireCooldown = 0;        // How much cooldown is left before the player can fire again.
+    float currentFireCooldown = -0.1f;        // How much cooldown is left before the player can fire again.
+    float currentReloadCooldown = -0.1f;
+    int currentRemainingAmmo;
+    int currentMagazineCount;
 
 	void Start() {
         gunRenderer = GetComponent<LineRenderer>();
+        currentRemainingAmmo = startAmmo - magazineCount;
+        currentMagazineCount = magazineCount;
 	}
 
 	void Awake() {
@@ -26,29 +34,50 @@ public class PlayerController : MonoBehaviour {
 	}
 
     void Update() {
-        if (currentFireCooldown > 0)
-        {
-            currentFireCooldown -= Time.deltaTime;
-        }
         if (gunRenderer.enabled)
         {
             gunRenderer.enabled = false;
         }
-        if (Input.GetMouseButtonDown(0) && currentFireCooldown <= 0)
+        if (currentFireCooldown > 0)
         {
-            RaycastHit hit = new RaycastHit();
-            Ray bulletRay = new Ray(transform.position, transform.rotation * Vector3.forward);
-            if (Physics.Raycast(bulletRay, out hit, fireDistance))
+            currentFireCooldown -= Time.deltaTime;
+        }
+        else if (currentReloadCooldown > 0)
+        {
+            currentReloadCooldown -= Time.deltaTime;
+            if (currentReloadCooldown <= 0)
             {
-                gunRenderer.SetPosition(0, transform.position);
-                gunRenderer.SetPosition(1, hit.point);
-                gunRenderer.enabled = true;
-                currentFireCooldown = fireCooldown;
-                EnemyController hitEnemy = hit.collider.gameObject.GetComponent<EnemyController>();
-                if (hitEnemy != null)
+                Debug.Log("Reload complete");
+                int toReload = magazineCount - currentMagazineCount;
+                int availableForReload = currentRemainingAmmo >= toReload ? toReload : currentRemainingAmmo;
+                currentMagazineCount += availableForReload;
+                currentRemainingAmmo -= availableForReload;
+            }
+        }
+        else
+        {
+            if (Input.GetMouseButtonDown(0) && currentMagazineCount >= 1)
+            {
+                currentMagazineCount -= 1;
+                RaycastHit hit = new RaycastHit();
+                Ray bulletRay = new Ray(transform.position, transform.rotation * Vector3.forward);
+                if (Physics.Raycast(bulletRay, out hit, fireDistance))
                 {
-                    hitEnemy.TakeDamage(damage);
+                    gunRenderer.SetPosition(0, transform.position);
+                    gunRenderer.SetPosition(1, hit.point);
+                    gunRenderer.enabled = true;
+                    currentFireCooldown = fireCooldown;
+                    EnemyController hitEnemy = hit.collider.gameObject.GetComponent<EnemyController>();
+                    if (hitEnemy != null)
+                    {
+                        hitEnemy.TakeDamage(damage);
+                    }
                 }
+            }
+            else if (currentMagazineCount < magazineCount && currentRemainingAmmo > 0 && (Input.GetMouseButtonDown(0) || Input.GetKeyDown("r")))
+            {
+                Debug.Log("Reloading");
+                currentReloadCooldown = reloadCooldown;
             }
         }
     }
