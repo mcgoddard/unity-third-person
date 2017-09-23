@@ -39,7 +39,6 @@ public class PlayerController : MonoBehaviour {
 	}
 
     void Update() {
-        currentHealth -= 1;
         if (gunRenderer.enabled)
         {
             gunRenderer.enabled = false;
@@ -153,6 +152,22 @@ public class PlayerController : MonoBehaviour {
         get
         {
             return currentHealth;
+        }
+    }
+
+    public int CurrentAmmo
+    {
+        get
+        {
+            return currentRemainingAmmo;
+        }
+    }
+
+    public int CurrentLoaded
+    {
+        get
+        {
+            return currentMagazineCount;
         }
     }
 }
