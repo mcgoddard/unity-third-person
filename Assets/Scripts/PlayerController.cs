@@ -9,8 +9,8 @@ public class PlayerController : MonoBehaviour {
     private const float reloadCooldown = 2.0f;  // Time to reload
     private const float damage = 50.0f;   // Amount of damage to deal on a successful shot
     private const int startAmmo = 18;     // Amount of (unloaded) ammo at starting
-    private const int magazineCount = 6;  // Number of rounds when the weapon is fully loaded
 
+    public const int MagazineCount = 6;  // Number of rounds when the weapon is fully loaded
     public const float MaxHealth = 100;   // How much health the player has at starting
 
     public float speed = 6f;              // The speed that the player will move at.
@@ -25,20 +25,23 @@ public class PlayerController : MonoBehaviour {
     int currentMagazineCount;             // Number of currently loaded bullets
     float currentHealth;                  // Current health
 
-	void Start() {
+	void Start() 
+    {
         gunRenderer = GetComponent<LineRenderer>();
-        currentRemainingAmmo = startAmmo - magazineCount;
-        currentMagazineCount = magazineCount;
+        currentRemainingAmmo = startAmmo - MagazineCount;
+        currentMagazineCount = MagazineCount;
         currentHealth = MaxHealth;
 	}
 
-	void Awake() {
+	void Awake() 
+    {
         m_floorMask = LayerMask.GetMask("Floor");
 
         m_playerRigidbody = GetComponent<Rigidbody>();
 	}
 
-    void Update() {
+    void Update() 
+    {
         if (gunRenderer.enabled)
         {
             gunRenderer.enabled = false;
@@ -52,7 +55,7 @@ public class PlayerController : MonoBehaviour {
             currentReloadCooldown -= Time.deltaTime;
             if (currentReloadCooldown <= 0)
             {
-                int toReload = magazineCount - currentMagazineCount;
+                int toReload = MagazineCount - currentMagazineCount;
                 int availableForReload = currentRemainingAmmo >= toReload ? toReload : currentRemainingAmmo;
                 currentMagazineCount += availableForReload;
                 currentRemainingAmmo -= availableForReload;
@@ -80,7 +83,7 @@ public class PlayerController : MonoBehaviour {
                     }
                 }
             }
-            else if (currentMagazineCount < magazineCount && currentRemainingAmmo > 0 && (Input.GetMouseButtonDown(0) || Input.GetKeyDown("r")))
+            else if (currentMagazineCount < MagazineCount && currentRemainingAmmo > 0 && (Input.GetMouseButtonDown(0) || Input.GetKeyDown("r")))
             {
                 currentReloadCooldown = reloadCooldown;
             }
@@ -88,7 +91,8 @@ public class PlayerController : MonoBehaviour {
     }
 	
 	// Update is called once per frame
-	void FixedUpdate() {
+	void FixedUpdate() 
+    {
         var x = Input.GetAxis("Horizontal");
         var z = Input.GetAxis("Vertical");
 		

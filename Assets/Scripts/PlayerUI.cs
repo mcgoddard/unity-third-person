@@ -5,9 +5,10 @@ using UnityEngine.UI;
 
 public class PlayerUI : MonoBehaviour {
     public PlayerController player;
-    public Sprite Bullet;
+    public GameObject BulletPrefab;
     public GameObject Healthbar;
     public GameObject AmmoCounter;
+    public GameObject LoadedPanel;
 
     private const float fullHealthScale = 0.2f;
 
@@ -15,11 +16,20 @@ public class PlayerUI : MonoBehaviour {
     private float healthCache = -1;
     private int ammoCounterCache = -1;
     private int loadedCache = -1;
+    private GameObject[] bullets;
 
 	// Use this for initialization
 	void Start() 
     {
         ammoCounterText = AmmoCounter.GetComponent<Text>();
+        bullets = new GameObject[PlayerController.MagazineCount];
+        for (int i = 0; i < PlayerController.MagazineCount; i++)
+        {
+            Vector3 position = new Vector3((i * -20) - 10, 25);
+            bullets[i] = GameObject.Instantiate(BulletPrefab);
+            bullets[i].transform.SetParent(LoadedPanel.transform, false);
+            bullets[i].transform.localPosition = position;
+        }
 	}
 	
 	// Update is called once per frame
@@ -40,6 +50,17 @@ public class PlayerUI : MonoBehaviour {
         if (loadedCache != player.CurrentLoaded)
         {
             loadedCache = player.CurrentLoaded;
+            for (int i = 0; i < PlayerController.MagazineCount; i++)
+            {
+                if (i < loadedCache)
+                {
+                    bullets[i].SetActive(true);
+                }
+                else
+                {
+                    bullets[i].SetActive(false);
+                }
+            }
         }
 	}
 }
