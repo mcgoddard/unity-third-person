@@ -4,18 +4,18 @@ using UnityEngine;
 using System;
 
 public class PlayerController : MonoBehaviour {
+    public float Speed = 6.0f;
+
     private const float fireDistance = 20.0f;   // Max distance of a shot
     private const float fireCooldown = 0.2f;    // Time between shots
     private const float reloadCooldown = 2.0f;  // Time to reload
     private const float damage = 50.0f;   // Amount of damage to deal on a successful shot
     private const int startAmmo = 18;     // Amount of (unloaded) ammo at starting
+    private const float interactionDistance = 4.0f; // Distance at which the player can interact with an object
 
     public const int MagazineCount = 6;  // Number of rounds when the weapon is fully loaded
     public const float MaxHealth = 100;   // How much health the player has at starting
 
-    public float speed = 6f;              // The speed that the player will move at.
-
-    Vector3 m_movement;                   // The vector to store the direction of the player's movement.
     int m_floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
     Rigidbody m_playerRigidbody;          // Reference to the player's rigidbody.
     LineRenderer gunRenderer;             // Reference to the player's line renderer to use for gunfire.
@@ -24,6 +24,10 @@ public class PlayerController : MonoBehaviour {
     int currentRemainingAmmo;             // Amount of (unloaded) ammo remaining
     int currentMagazineCount;             // Number of currently loaded bullets
     float currentHealth;                  // Current health
+    Vector3 m_movement;                   // The vector to store the direction of the player's movement.
+    private GameObject m_player;
+    private GameObject[] interactives;
+    private int goldStolen = 0;
 
 	void Start() 
     {
@@ -31,6 +35,9 @@ public class PlayerController : MonoBehaviour {
         currentRemainingAmmo = startAmmo - MagazineCount;
         currentMagazineCount = MagazineCount;
         currentHealth = MaxHealth;
+
+        m_player = GameObject.FindGameObjectWithTag("Player");
+        interactives = GameObject.FindGameObjectsWithTag("Interactive");
 	}
 
 	void Awake() 
@@ -42,6 +49,74 @@ public class PlayerController : MonoBehaviour {
 
     void Update() 
     {
+        //Keyboard Controls
+        var x = 0;
+        var z = 0;
+        if(Input.GetKey(KeyCode.W))
+        {
+            z = 1;
+        }
+        if(Input.GetKey(KeyCode.A))
+        {
+            x = -1;
+        }
+        if(Input.GetKey(KeyCode.S))
+        {
+            z = -1;
+        }
+        if(Input.GetKey(KeyCode.D))
+        {
+            x = 1;
+        }
+		Move(x,z);
+        //Turn the player
+		Turning();
+
+        // Interact logic
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            // Find the closest interactable
+            GameObject selected = null;
+            float selectedDistance = 0.0f;
+            foreach (var interactive in interactives)
+            {
+                var distance = (interactive.transform.position - transform.position).magnitude;
+                if (distance < interactionDistance && 
+                    (selected == null || selectedDistance > distance))
+                {
+                    selected = interactive;
+                    selectedDistance = distance;
+                }
+            }
+            if (selected != null)
+            {
+                // Differentiate the interaction required
+                if (selected.name == "Safe")
+                {
+                    Safe safeScript = selected.GetComponent<Safe>();
+                    if (safeScript.CanOpen())
+                    {
+                        safeScript.Open();
+                    }
+                    else if (safeScript.CanSteal())
+                    {
+                        safeScript.Steal();
+                        goldStolen += 10;
+                    }
+                }
+                else if (selected.name == "Gold Bar")
+                {
+                    GoldBar barScript = selected.GetComponent<GoldBar>();
+                    if (barScript.CanSteal())
+                    {
+                        barScript.Steal();
+                        goldStolen += 1;
+                    }
+                }
+            }
+        }
+
+        // Shooting logic
         if (gunRenderer.enabled)
         {
             gunRenderer.enabled = false;
@@ -69,7 +144,8 @@ public class PlayerController : MonoBehaviour {
                 RaycastHit hit = new RaycastHit();
                 Vector3 fireFrom = transform.position;
                 fireFrom.y += 1.18f;
-                Ray bulletRay = new Ray(fireFrom, transform.rotation * Vector3.forward);
+                Quaternion targetRotation = m_player.transform.rotation * Quaternion.Euler(0, 0, 90);
+                Ray bulletRay = new Ray(fireFrom, targetRotation * Vector3.up);
                 if (Physics.Raycast(bulletRay, out hit, fireDistance))
                 {
                     gunRenderer.SetPosition(0, fireFrom);
@@ -83,50 +159,30 @@ public class PlayerController : MonoBehaviour {
                     }
                 }
             }
-            else if (currentMagazineCount < MagazineCount && currentRemainingAmmo > 0 && (Input.GetMouseButtonDown(0) || Input.GetKeyDown("r")))
+            else if (currentMagazineCount < MagazineCount && currentRemainingAmmo > 0 && (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.R)))
             {
                 currentReloadCooldown = reloadCooldown;
             }
         }
     }
-	
-	// Update is called once per frame
-	void FixedUpdate() 
-    {
-        var x = Input.GetAxis("Horizontal");
-        var z = Input.GetAxis("Vertical");
-		
-		Move(x,z);
 
-		Turning();
-	}
-
-	void Move(float x, float z)
+    void Move(float x, float z)
 	{
-		//If the player is still, stop moving
-		if((Math.Abs(z) > 0.5f) || (Math.Abs(x) > 0.5f))
-		{
-			// Set the movement vector based on the axis input.
-			m_movement.Set (x, 0f, z);
-			
-			// Normalise the movement vector and make it proportional to the speed per second.
-			m_movement = m_movement.normalized * speed * Time.deltaTime;
+        // Set the movement vector based on the axis input.
+        m_movement.Set (x, 0f, z);
+        
+        // Normalise the movement vector and make it proportional to the speed per second.
+        m_movement = m_movement.normalized * Speed * Time.deltaTime;
 
-			// Move the player to it's current position plus the movement.
-			transform.Translate(m_movement);
-			
-		} else {
-			// Stop moving
-			m_movement.Set (0f, 0f, 0f);
-			transform.Translate(m_movement);
-		}
-
+        //Debug.Log("m_movement:" + m_movement);
+        // Move the player to it's current position plus the movement.
+        this.transform.Translate(m_movement);
 	}
 
     void Turning()
     {
     	// Generate a plane that intersects the transform's position with an upwards normal.
-    	Plane playerPlane = new Plane(Vector3.up, transform.position);
+    	Plane playerPlane = new Plane(Vector3.up, m_player.transform.localPosition);
  
     	// Generate a ray from the cursor position
     	Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -144,11 +200,14 @@ public class PlayerController : MonoBehaviour {
         	Vector3 targetPoint = ray.GetPoint(hitdist);
  
         	// Determine the target rotation.  This is the rotation if the transform looks at the target point.
-        	Quaternion targetRotation = Quaternion.LookRotation(targetPoint - transform.position);
+        	Quaternion targetRotation = Quaternion.LookRotation(targetPoint - m_player.transform.position);
+            targetRotation *= Quaternion.Euler(270, 0, 90); // this adds a 90 degrees Y rotation
  
         	// Smoothly rotate towards the target point.
-        	transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, speed * Time.deltaTime);
+        	m_player.transform.localRotation = Quaternion.Slerp(m_player.transform.localRotation, targetRotation, Speed * Time.deltaTime);
 		}
+        //Keep base rotation fixed
+        transform.rotation = new Quaternion(0,0,0,0);
     }
 
     public float CurrentHealth

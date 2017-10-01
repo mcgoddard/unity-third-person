@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraController : MonoBehaviour {
+    public float Speed = 6f;              // The speed that the player will move at.
     private GameObject m_player;
-
     private float m_screenWidth;
     private float m_screenHeight;
-
     private GameObject[] m_roofs;
 
 	// Use this for initialization
@@ -24,11 +23,11 @@ public class CameraController : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        //Move the camera (based on the players position)
         var position = m_player.transform.position;
         position.y += 4.9f;
         position.z -= 0.5f;
         transform.position = position;
-
 
         //Can the camera see the player
         RaycastHit hit;
