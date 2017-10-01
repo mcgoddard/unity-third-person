@@ -15,7 +15,7 @@ public class EnemyController : MonoBehaviour {
     // How far can we detect the player during a chase
     private const float maxVisionDistance = 10;
     // Speed whilst patrolling/investigating
-    private const float walkingSpeed = 1.5f;
+    private const float walkingSpeed = 4.5f;
     // Speed whilst attacking
     private const float chaseSpeed = 3.0f;
     // Rotation speed modifier for turning during patrols
@@ -38,7 +38,9 @@ public class EnemyController : MonoBehaviour {
 	private NavMeshAgent agent;
     private VisionCone leftCone;
     private VisionCone rightCone;
+    private List<Bounds> safeZones;
     private GameObject player;
+    private int playerInstanceId;
     // How long we have been waiting (at the current patrol point)
     private float currentWaitingTime;
     // How long we have been investigating
@@ -59,15 +61,20 @@ public class EnemyController : MonoBehaviour {
         // Set up the NavMeshAgent that will handle movement, avoid obstacles
 		agent = GetComponent<NavMeshAgent>();
         agent.speed = walkingSpeed;
-        // Grab the components required for spotting the player
+        // Grab the components required for spotting the player        
+        safeZones = new List<Bounds>();
+        GameObject[] gos = GameObject.FindGameObjectsWithTag("SafeZone");
+        saveBounds(gos);
+        //safeZone.SetActive(true);
         leftCone = transform.Find("LeftVisionCone").GetComponent<VisionCone>();
         rightCone = transform.Find("RightVisionCone").GetComponent<VisionCone>();
         // Get a reference to the player game object
         player = GameObject.Find("Player");
+        playerInstanceId = player.GetInstanceID();
 	}
-	
-	// Update is called once per frame
-	void Update() 
+    
+    // Update is called once per frame
+    void Update() 
 	{
 		switch (currentState) 
 		{
@@ -91,12 +98,13 @@ public class EnemyController : MonoBehaviour {
                         }
                     }
                 }
-                if (PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) && 
-                    CanRayCastTarget(transform.position, player.transform.position, player))
+                if (PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) &&
+                    CanRayCastTarget(transform.position, player.transform.position, player) && 
+                    !playerInSafeZone())
                 {
                     investigationTarget = null;
                     currentInvestigationTime = 0.0f;
-                    currentState = EnemyState.Attacking;
+                    currentState = EnemyState.Attacking;                    
                 }
                 else if (currentInvestigationTime < investigationTime)
                 {
@@ -135,9 +143,10 @@ public class EnemyController : MonoBehaviour {
 			case EnemyState.Patrolling:
                 // Check if we can spot a player, if so switch to attacking state
                 if (PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) && 
-                    CanRayCastTarget(transform.position, player.transform.position, player))
+                    CanRayCastTarget(transform.position, player.transform.position, player) && 
+                    !playerInSafeZone())
                 {
-                    currentState = EnemyState.Attacking;
+                    currentState = EnemyState.Attacking;                    
                 }
                 // Otherwise continue the patrol route
                 else 
@@ -192,13 +201,38 @@ public class EnemyController : MonoBehaviour {
         return (SameSide(p, a, b, c) && SameSide(p, b, a, c) && SameSide(p, c, a, b));
     }
 
+    //Save the bounds of the safe zones so we don't have to keep pulling them
+    private void saveBounds(GameObject[] zones)
+    {
+        foreach (GameObject zone in zones)
+        {
+            Collider c = (Collider)(zone.GetComponent(typeof(Collider)));
+            Bounds b = c.bounds;
+            safeZones.Add(b);
+        }
+    }
+
+    // Is player in any listed safe zone
+    private bool playerInSafeZone()
+    {
+        foreach (Bounds b in safeZones)
+        {
+            //nice quick vector maths
+            if (b.Contains(player.transform.position))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Helper to check for a raycast hit to the player (are they behind cover?)
     private static bool CanRayCastTarget(Vector3 position, Vector3 targetPosition, GameObject target)
     {
         Vector3 direction = targetPosition - position;
         Ray visionRay = new Ray(position, direction);
         RaycastHit hit;
-        if (Physics.Raycast(visionRay, out hit, maxVisionDistance))
+        if (Physics.Raycast(visionRay, out hit, maxVisionDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
             return (hit.collider.gameObject == target);
         }

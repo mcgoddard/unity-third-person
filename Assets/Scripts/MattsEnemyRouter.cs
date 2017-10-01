@@ -14,8 +14,8 @@ public class MattsEnemyRouter : EnemyRouter {
         {
             new PatrolPoint(new Vector3(-2.52f, 0.95f, -0.41f), new Vector3(0, 180, 0), 2.0f),
             new PatrolPoint(new Vector3(7, 0.95f, -0.41f), new Vector3(0, 90, 0), 2.0f),
-            new PatrolPoint(new Vector3(7, 0.95f, -6), new Vector3(0, 180, 0), 2.0f),
-            new PatrolPoint(new Vector3(2.4f, 0.95f, -6), new Vector3(0, 0, 0), 2.0f),
+            //new PatrolPoint(new Vector3(7, 0.95f, -6), new Vector3(0, 180, 0), 2.0f),
+            //new PatrolPoint(new Vector3(2.4f, 0.95f, -6), new Vector3(0, 0, 0), 2.0f),
             new PatrolPoint(new Vector3(2.4f, 0.95f, -0.41f), new Vector3(0, 270, 0), 2.0f),
         };
         routes[1] = new PatrolPoint[]
