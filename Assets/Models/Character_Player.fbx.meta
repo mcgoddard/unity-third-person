@@ -1,34 +1,80 @@
 fileFormatVersion: 2
-guid: f124e20039fa54189aa4d61b62252961
-timeCreated: 1505663830
+guid: 2e531e8b4003c4b75922fd3c20fe6577
+timeCreated: 1506177547
 licenseType: Free
 ModelImporter:
   serializedVersion: 21
   fileIDToRecycleName:
-    100000: Camera
-    100002: Point
-    100004: //RootNode
-    100006: Sun
-    100008: Sun.001
-    100010: Torus
-    100012: Torus.001
-    400000: Camera
-    400002: Point
-    400004: //RootNode
-    400006: Sun
-    400008: Sun.001
-    400010: Torus
-    400012: Torus.001
-    2000000: Camera
-    2300000: Torus
-    2300002: Torus.001
-    3300000: Torus
-    3300002: Torus.001
-    4300000: Torus.001
-    4300002: Torus
-    10800000: Point
-    10800002: Sun
-    10800004: Sun.001
+    100000: //RootNode
+    100002: Head
+    100004: Left Foot
+    100006: Left Hand
+    100008: Left Lower Arm
+    100010: Left Lower Leg
+    100012: Left Upper Arm
+    100014: Left Upper Leg
+    100016: Right Foot
+    100018: Right Hand
+    100020: Right Lower Arm
+    100022: Right Lower Leg
+    100024: Right Upper Arm
+    100026: Right Upper Leg
+    400000: //RootNode
+    400002: Head
+    400004: Left Foot
+    400006: Left Hand
+    400008: Left Lower Arm
+    400010: Left Lower Leg
+    400012: Left Upper Arm
+    400014: Left Upper Leg
+    400016: Right Foot
+    400018: Right Hand
+    400020: Right Lower Arm
+    400022: Right Lower Leg
+    400024: Right Upper Arm
+    400026: Right Upper Leg
+    2300000: //RootNode
+    2300002: Head
+    2300004: Left Foot
+    2300006: Left Hand
+    2300008: Left Lower Arm
+    2300010: Left Lower Leg
+    2300012: Left Upper Arm
+    2300014: Left Upper Leg
+    2300016: Right Foot
+    2300018: Right Hand
+    2300020: Right Lower Arm
+    2300022: Right Lower Leg
+    2300024: Right Upper Arm
+    2300026: Right Upper Leg
+    3300000: //RootNode
+    3300002: Head
+    3300004: Left Foot
+    3300006: Left Hand
+    3300008: Left Lower Arm
+    3300010: Left Lower Leg
+    3300012: Left Upper Arm
+    3300014: Left Upper Leg
+    3300016: Right Foot
+    3300018: Right Hand
+    3300020: Right Lower Arm
+    3300022: Right Lower Leg
+    3300024: Right Upper Arm
+    3300026: Right Upper Leg
+    4300000: Torso
+    4300002: Right Upper Leg
+    4300004: Right Lower Leg
+    4300006: Right Foot
+    4300008: Left Upper Leg
+    4300010: Left Foot
+    4300012: Left Lower Leg
+    4300014: Right Upper Arm
+    4300016: Right Lower Arm
+    4300018: Right Hand
+    4300020: Left Upper Arm
+    4300022: Left Lower Arm
+    4300024: Left Hand
+    4300026: Head
   materials:
     importMaterials: 1
     materialName: 2
