@@ -104,6 +104,15 @@ public class PlayerController : MonoBehaviour {
                         goldStolen += 10;
                     }
                 }
+                else if (selected.name == "Gold Bar")
+                {
+                    GoldBar barScript = selected.GetComponent<GoldBar>();
+                    if (barScript.CanSteal())
+                    {
+                        barScript.Steal();
+                        goldStolen += 1;
+                    }
+                }
             }
         }
 
