@@ -5,13 +5,17 @@ using System;
 
 public class PlayerController : MonoBehaviour {
     public float Speed = 6.0f;
+
     private const float fireDistance = 20.0f;   // Max distance of a shot
     private const float fireCooldown = 0.2f;    // Time between shots
     private const float reloadCooldown = 2.0f;  // Time to reload
     private const float damage = 50.0f;   // Amount of damage to deal on a successful shot
     private const int startAmmo = 18;     // Amount of (unloaded) ammo at starting
+    private const float interactionDistance = 4.0f; // Distance at which the player can interact with an object
+
     public const int MagazineCount = 6;  // Number of rounds when the weapon is fully loaded
     public const float MaxHealth = 100;   // How much health the player has at starting
+
     int m_floorMask;                      // A layer mask so that a ray can be cast just at gameobjects on the floor layer.
     Rigidbody m_playerRigidbody;          // Reference to the player's rigidbody.
     LineRenderer gunRenderer;             // Reference to the player's line renderer to use for gunfire.
@@ -22,6 +26,8 @@ public class PlayerController : MonoBehaviour {
     float currentHealth;                  // Current health
     Vector3 m_movement;                   // The vector to store the direction of the player's movement.
     private GameObject m_player;
+    private GameObject[] interactives;
+    private int goldStolen = 0;
 
 	void Start() 
     {
@@ -31,6 +37,7 @@ public class PlayerController : MonoBehaviour {
         currentHealth = MaxHealth;
 
         m_player = GameObject.FindGameObjectWithTag("Player");
+        interactives = GameObject.FindGameObjectsWithTag("Interactive");
 	}
 
 	void Awake() 
@@ -65,6 +72,42 @@ public class PlayerController : MonoBehaviour {
         //Turn the player
 		Turning();
 
+        // Interact logic
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            // Find the closest interactable
+            GameObject selected = null;
+            float selectedDistance = 0.0f;
+            foreach (var interactive in interactives)
+            {
+                var distance = (interactive.transform.position - transform.position).magnitude;
+                if (distance < interactionDistance && 
+                    (selected == null || selectedDistance > distance))
+                {
+                    selected = interactive;
+                    selectedDistance = distance;
+                }
+            }
+            if (selected != null)
+            {
+                // Differentiate the interaction required
+                if (selected.name == "Safe")
+                {
+                    Safe safeScript = selected.GetComponent<Safe>();
+                    if (safeScript.CanOpen())
+                    {
+                        safeScript.Open();
+                    }
+                    else if (safeScript.CanSteal())
+                    {
+                        safeScript.Steal();
+                        goldStolen += 10;
+                    }
+                }
+            }
+        }
+
+        // Shooting logic
         if (gunRenderer.enabled)
         {
             gunRenderer.enabled = false;
@@ -121,7 +164,7 @@ public class PlayerController : MonoBehaviour {
         // Normalise the movement vector and make it proportional to the speed per second.
         m_movement = m_movement.normalized * Speed * Time.deltaTime;
 
-        Debug.Log("m_movement:" + m_movement);
+        //Debug.Log("m_movement:" + m_movement);
         // Move the player to it's current position plus the movement.
         this.transform.Translate(m_movement);
 	}
