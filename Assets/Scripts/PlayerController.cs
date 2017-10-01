@@ -144,7 +144,8 @@ public class PlayerController : MonoBehaviour {
                 RaycastHit hit = new RaycastHit();
                 Vector3 fireFrom = transform.position;
                 fireFrom.y += 1.18f;
-                Ray bulletRay = new Ray(fireFrom, m_player.transform.rotation * Vector3.forward);
+                Quaternion targetRotation = m_player.transform.rotation * Quaternion.Euler(0, 0, 90);
+                Ray bulletRay = new Ray(fireFrom, targetRotation * Vector3.up);
                 if (Physics.Raycast(bulletRay, out hit, fireDistance))
                 {
                     gunRenderer.SetPosition(0, fireFrom);
