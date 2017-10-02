@@ -16,10 +16,11 @@ public class Safe : MonoBehaviour {
     private GameObject doorLock;
     private GameObject goldPile;
     private State currentState = State.Closed;
+    private AudioSource audioSource;
 
     private static Quaternion unlockedRotation = Quaternion.Euler(new Vector3(180, 0, 0));
     private static Quaternion openedRotation = Quaternion.Euler(new Vector3(0, 0, 270));
-    private static float unlockTime = 0.1f;
+    private static float unlockTime = 0.05f;
 
 	// Use this for initialization
 	void Start() 
@@ -27,6 +28,7 @@ public class Safe : MonoBehaviour {
         door = transform.Find("Door Hinge").gameObject;
         doorLock = door.transform.Find("Safe Door").Find("Lock").gameObject;
         goldPile = transform.Find("Gold Pile").gameObject;
+        audioSource = GetComponent<AudioSource>();
 	}
 	
 	// Update is called once per frame
@@ -65,6 +67,7 @@ public class Safe : MonoBehaviour {
     public void Open()
     {
         currentState = State.Opening;
+        audioSource.Play();
     }
 
     public bool CanSteal()
