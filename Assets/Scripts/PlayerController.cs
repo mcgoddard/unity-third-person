@@ -87,7 +87,8 @@ public class PlayerController : MonoBehaviour {
             {
                 var distance = (interactive.transform.position - transform.position).magnitude;
                 if (distance < interactionDistance && 
-                    (selected == null || selectedDistance > distance))
+                    (selected == null || selectedDistance > distance) &&
+                    interactive.activeSelf)
                 {
                     selected = interactive;
                     selectedDistance = distance;
