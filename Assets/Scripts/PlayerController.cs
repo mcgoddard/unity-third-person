@@ -5,10 +5,12 @@ using System;
 
 public class PlayerController : MonoBehaviour {
     public float Speed = 6.0f;
+    public AudioClip FireClip;
+    public AudioClip ReloadClip;
 
     private const float fireDistance = 20.0f;   // Max distance of a shot
     private const float fireCooldown = 0.2f;    // Time between shots
-    private const float reloadCooldown = 2.0f;  // Time to reload
+    private const float reloadCooldown = 1.0f;  // Time to reload
     private const float damage = 50.0f;   // Amount of damage to deal on a successful shot
     private const int startAmmo = 18;     // Amount of (unloaded) ammo at starting
     private const float interactionDistance = 4.0f; // Distance at which the player can interact with an object
@@ -25,13 +27,16 @@ public class PlayerController : MonoBehaviour {
     int currentMagazineCount;             // Number of currently loaded bullets
     float currentHealth;                  // Current health
     Vector3 m_movement;                   // The vector to store the direction of the player's movement.
+
     private GameObject m_player;
     private GameObject[] interactives;
     private int goldStolen = 0;
+    private AudioSource audioSource;
 
 	void Start() 
     {
         gunRenderer = GetComponent<LineRenderer>();
+        audioSource = GetComponent<AudioSource>();
         currentRemainingAmmo = startAmmo - MagazineCount;
         currentMagazineCount = MagazineCount;
         currentHealth = MaxHealth;
@@ -140,6 +145,7 @@ public class PlayerController : MonoBehaviour {
         {
             if (Input.GetMouseButtonDown(0) && currentMagazineCount >= 1)
             {
+                audioSource.PlayOneShot(FireClip);
                 currentMagazineCount -= 1;
                 RaycastHit hit = new RaycastHit();
                 Vector3 fireFrom = transform.position;
@@ -162,6 +168,7 @@ public class PlayerController : MonoBehaviour {
             else if (currentMagazineCount < MagazineCount && currentRemainingAmmo > 0 && (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.R)))
             {
                 currentReloadCooldown = reloadCooldown;
+                audioSource.PlayOneShot(ReloadClip);
             }
         }
     }
