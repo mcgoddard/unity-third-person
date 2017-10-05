@@ -12,6 +12,10 @@ public class EnemyController : MonoBehaviour {
         Investigating
 	}
 
+    public AudioClip FireClip;
+    public AudioClip ReloadClip;
+
+    private const float fireDistance = 20.0f;   // Max distance of a shot
     // How far can we detect the player during a chase
     private const float maxVisionDistance = 10;
     // Speed whilst patrolling/investigating
@@ -21,7 +25,7 @@ public class EnemyController : MonoBehaviour {
     // Rotation speed modifier for turning during patrols
     private const float rotationSpeed = 3.0f;
     // Distance to approach the player during a chase
-    private const float attackingDistance = 3.0f;
+    private const float attackingDistance = 5.0f;
     // Distance at which we cannot lose the player during a chase, even if LoS is broken
     private const float minLosingDistance = 5.0f;
     // Time to spend investigating before returning to the patrol
@@ -34,6 +38,11 @@ public class EnemyController : MonoBehaviour {
     private const int recalculateFrameTimer = 10;
     //Maximum health of the enemy
     private const float maxHealth = 100;
+    public const int MagazineCount = 6;  // Number of rounds when the weapon is fully loaded
+    private const int startAmmo = 18;     // Amount of (unloaded) ammo at starting
+    private const float fireCooldown = 1.0f;    // Time between shots
+    private const float reloadCooldown = 1.0f;  // Time to reload
+    private const float damage = 20.0f;   // Amount of damage to deal on a successful shot
 
 	private EnemyState currentState = EnemyState.Patrolling;
 	private uint patrollingIndex = 0;
@@ -43,19 +52,20 @@ public class EnemyController : MonoBehaviour {
     private List<Bounds> safeZones;
     private GameObject player;
     private int playerInstanceId;
-    // How long we have been waiting (at the current patrol point)
-    private float currentWaitingTime;
-    // How long we have been investigating
-    private float currentInvestigationTime = 0.0f;
-    // The point at which the player was lost investigation will centre around this point
-    private Vector3 investigationPoint;
-    // The current point we'll navigate to in our investigation
-    private Nullable<Vector3> investigationTarget = null;
-    // How many frames since the last refresh
-    private int currentFrameTimer = 0;
+    private float currentWaitingTime;// How long we have been waiting (at the current patrol point)   
+    private float currentInvestigationTime = 0.0f;// How long we have been investigating  
+    private Vector3 investigationPoint;// The point at which the player was lost investigation will centre around this point
+    private Nullable<Vector3> investigationTarget = null;// The current point we'll navigate to in our investigation
+    private int currentFrameTimer = 0;// How many frames since the last refresh
     public EnemyRouter Router;
     public uint Id;
-    private float health;
+    private float health;    
+    LineRenderer gunRenderer;  // Reference to the player's line renderer to use for gunfire.   
+    private AudioSource audioSource;           
+    private int currentRemainingAmmo; // Amount of (unloaded) ammo remaining     
+    int currentMagazineCount; // Number of currently loaded bullets        
+    float currentFireCooldown = -0.1f;    // How much cooldown is left before the player can fire again.
+    float currentReloadCooldown = -0.1f;  // How much cooldown is left before the player has reloaded.  
 
 	// Use this for initialization
 	void Start () 
@@ -74,8 +84,11 @@ public class EnemyController : MonoBehaviour {
         player = GameObject.Find("Player");
         playerInstanceId = player.GetInstanceID();
 
-        //Enemy health
         health = maxHealth;
+        gunRenderer = GetComponent<LineRenderer>();
+        audioSource = GetComponent<AudioSource>();
+        currentRemainingAmmo = startAmmo - MagazineCount;
+        currentMagazineCount = MagazineCount;
 	}
     
     // Update is called once per frame
@@ -129,9 +142,11 @@ public class EnemyController : MonoBehaviour {
                     currentState = EnemyState.Investigating;
                     investigationPoint = player.transform.position;
                 }
-                else if (playerDistance < attackingDistance)
+                else if (playerDistance < attackingDistance && PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) && 
+                    CanRayCastTarget(transform.position, player.transform.position, player) && 
+                    !playerInSafeZone())
                 {
-                    agent.isStopped = true;
+                        Shoot();           
                 }
                 else if (currentFrameTimer >= recalculateFrameTimer)
                 {
@@ -192,6 +207,62 @@ public class EnemyController : MonoBehaviour {
 		}
 	}
 
+
+    // Shooting logic
+    void Shoot()
+    {      
+        if (gunRenderer.enabled)
+        {
+            gunRenderer.enabled = false;
+        }
+        if (currentFireCooldown > 0)
+        {
+            currentFireCooldown -= Time.deltaTime;
+        }
+        else if (currentReloadCooldown > 0)
+        {
+            currentReloadCooldown -= Time.deltaTime;
+            if (currentReloadCooldown <= 0)
+            {
+                int toReload = MagazineCount - currentMagazineCount;
+                int availableForReload = currentRemainingAmmo >= toReload ? toReload : currentRemainingAmmo;
+                currentMagazineCount += availableForReload;
+                currentRemainingAmmo -= availableForReload;
+            }
+        }
+        else
+        {
+            if (currentMagazineCount >= 1)
+            {
+                currentFireCooldown = fireCooldown;
+                audioSource.PlayOneShot(FireClip);
+                currentMagazineCount -= 1;
+                RaycastHit hit = new RaycastHit();
+                Vector3 fireFrom = transform.position;
+                fireFrom.y += 1.18f;
+                Quaternion targetRotation = transform.rotation * Quaternion.Euler(0, 90, 90);
+                Ray bulletRay = new Ray(fireFrom, targetRotation * Vector3.up);
+                if (Physics.Raycast(bulletRay, out hit, fireDistance))
+                {
+                    Debug.Log("shoot?");
+                    gunRenderer.SetPosition(0, fireFrom);
+                    gunRenderer.SetPosition(1, hit.point);
+                    gunRenderer.enabled = true;
+                    PlayerController hitEnemy = hit.collider.gameObject.GetComponent<PlayerController>();
+                    if (hitEnemy != null)
+                    {
+                        hitEnemy.TakeDamage(damage);
+                    }
+                }
+            }
+            else if (currentMagazineCount < MagazineCount && currentRemainingAmmo > 0)
+            {
+                currentReloadCooldown = reloadCooldown;
+                audioSource.PlayOneShot(ReloadClip);
+            }
+        }
+    }
+
     // Helper to decide if two points are on the same side of a line
     private static bool SameSide(Vector3 p1, Vector3 p2, Vector3 a, Vector3 b)
     {
@@ -248,14 +319,13 @@ public class EnemyController : MonoBehaviour {
     public float Health
     {
         get {return health;}
-        set {health = value;}
     }
 
     //Enemy takes damage
     public void TakeDamage(float damage)
     {
         //Take damage and wait for sweet embrase of death
-        if((Health -= damage) <= 0)
+        if((health -= damage) <= 0)
         {
             Destroy(this.gameObject);
         }
