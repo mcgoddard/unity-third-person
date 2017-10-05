@@ -32,6 +32,8 @@ public class EnemyController : MonoBehaviour {
     private const float maxInvestigationDistance = 5.0f;
     // Number of frames to recalculate routing
     private const int recalculateFrameTimer = 10;
+    //Maximum health of the enemy
+    private const float maxHealth = 100;
 
 	private EnemyState currentState = EnemyState.Patrolling;
 	private uint patrollingIndex = 0;
@@ -51,9 +53,9 @@ public class EnemyController : MonoBehaviour {
     private Nullable<Vector3> investigationTarget = null;
     // How many frames since the last refresh
     private int currentFrameTimer = 0;
-
     public EnemyRouter Router;
     public uint Id;
+    private float health;
 
 	// Use this for initialization
 	void Start () 
@@ -71,6 +73,9 @@ public class EnemyController : MonoBehaviour {
         // Get a reference to the player game object
         player = GameObject.Find("Player");
         playerInstanceId = player.GetInstanceID();
+
+        //Enemy health
+        health = maxHealth;
 	}
     
     // Update is called once per frame
@@ -239,8 +244,20 @@ public class EnemyController : MonoBehaviour {
         return false;
     }
 
+    //Enemy health property
+    public float Health
+    {
+        get {return health;}
+        set {health = value;}
+    }
+
+    //Enemy takes damage
     public void TakeDamage(float damage)
     {
-        // TODO
+        //Take damage and wait for sweet embrase of death
+        if((Health -= damage) <= 0)
+        {
+            Destroy(this.gameObject);
+        }
     }
 }
