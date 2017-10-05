@@ -41,7 +41,7 @@ public class PlayerController : MonoBehaviour {
         currentMagazineCount = MagazineCount;
         currentHealth = MaxHealth;
 
-        m_player = GameObject.FindGameObjectWithTag("Player");
+        m_player = GameObject.FindGameObjectWithTag("PlayerRigidbody");
         interactives = GameObject.FindGameObjectsWithTag("Interactive");
 	}
 

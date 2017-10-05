@@ -8,6 +8,8 @@ TagManager:
   - Roof
   - Interactive
   - SafeZone
+  - PlayerRigidbody
+  - Enemy
   layers:
   - Default
   - TransparentFX
