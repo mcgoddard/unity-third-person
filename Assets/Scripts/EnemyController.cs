@@ -142,11 +142,21 @@ public class EnemyController : MonoBehaviour {
                     currentState = EnemyState.Investigating;
                     investigationPoint = player.transform.position;
                 }
-                else if (playerDistance < attackingDistance && PointInTriangle(player.transform.position, transform.position, leftCone.GetConeEnd(), rightCone.GetConeEnd()) && 
-                    CanRayCastTarget(transform.position, player.transform.position, player) && 
-                    !playerInSafeZone())
+                else if (playerDistance < attackingDistance && CanRayCastTarget(transform.position, player.transform.position, player))
                 {
-                        Shoot();           
+                    agent.isStopped = true;
+                    Ray shootRay = new Ray(transform.position, transform.forward);
+                    RaycastHit shootHit = new RaycastHit();
+                    if (Physics.Raycast(shootRay, out shootHit, attackingDistance) && shootHit.collider.gameObject == player)
+                    {
+                        Shoot();
+                    }
+                    else
+                    {
+                        // Turn towards player
+                        Vector3 direction = player.transform.position - transform.position;
+                        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), rotationSpeed * Time.deltaTime);
+                    }
                 }
                 else if (currentFrameTimer >= recalculateFrameTimer)
                 {
@@ -244,7 +254,6 @@ public class EnemyController : MonoBehaviour {
                 Ray bulletRay = new Ray(fireFrom, targetRotation * Vector3.up);
                 if (Physics.Raycast(bulletRay, out hit, fireDistance))
                 {
-                    Debug.Log("shoot?");
                     gunRenderer.SetPosition(0, fireFrom);
                     gunRenderer.SetPosition(1, hit.point);
                     gunRenderer.enabled = true;
