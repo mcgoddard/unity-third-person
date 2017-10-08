@@ -26,7 +26,7 @@ public class CameraController : MonoBehaviour {
         //Move the camera (based on the players position)
         var position = m_player.transform.position;
         position.y += 4.9f;
-        position.z -= 0.5f;
+        position.z -= 0.6f;
         transform.position = position;
 
         //Can the camera see the player
@@ -38,8 +38,7 @@ public class CameraController : MonoBehaviour {
 
         if(Physics.Raycast(ray, out hit, 500, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
-//            Debug.Log(hit.transform.tag);
-            if(hit.transform.tag != "Player")
+            if(hit.transform.name != "Player" || hit.transform.tag != "Player")
             {
                 foreach(GameObject roof in m_roofs)
                 {

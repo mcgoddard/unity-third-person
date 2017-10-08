@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour {
     public float Speed = 6.0f;
@@ -11,7 +12,7 @@ public class PlayerController : MonoBehaviour {
     private const float fireDistance = 20.0f;   // Max distance of a shot
     private const float fireCooldown = 0.2f;    // Time between shots
     private const float reloadCooldown = 1.0f;  // Time to reload
-    private const float damage = 50.0f;   // Amount of damage to deal on a successful shot
+    private const float damage = 40.0f;   // Amount of damage to deal on a successful shot
     private const int startAmmo = 18;     // Amount of (unloaded) ammo at starting
     private const float interactionDistance = 4.0f; // Distance at which the player can interact with an object
 
@@ -41,7 +42,7 @@ public class PlayerController : MonoBehaviour {
         currentMagazineCount = MagazineCount;
         currentHealth = MaxHealth;
 
-        m_player = GameObject.FindGameObjectWithTag("Player");
+        m_player = GameObject.FindGameObjectWithTag("PlayerRigidbody");
         interactives = GameObject.FindGameObjectsWithTag("Interactive");
 	}
 
@@ -54,75 +55,19 @@ public class PlayerController : MonoBehaviour {
 
     void Update() 
     {
-        //Keyboard Controls
-        var x = 0;
-        var z = 0;
-        if(Input.GetKey(KeyCode.W))
-        {
-            z = 1;
-        }
-        if(Input.GetKey(KeyCode.A))
-        {
-            x = -1;
-        }
-        if(Input.GetKey(KeyCode.S))
-        {
-            z = -1;
-        }
-        if(Input.GetKey(KeyCode.D))
-        {
-            x = 1;
-        }
-		Move(x,z);
+        //Move the Player
+		Move();
         //Turn the player
-		Turning();
-
+		Turn();
+        //Handle shooting logic
+        Shoot();
         // Interact logic
-        if (Input.GetKeyDown(KeyCode.E))
-        {
-            // Find the closest interactable
-            GameObject selected = null;
-            float selectedDistance = 0.0f;
-            foreach (var interactive in interactives)
-            {
-                var distance = (interactive.transform.position - transform.position).magnitude;
-                if (distance < interactionDistance && 
-                    (selected == null || selectedDistance > distance) &&
-                    interactive.activeSelf)
-                {
-                    selected = interactive;
-                    selectedDistance = distance;
-                }
-            }
-            if (selected != null)
-            {
-                // Differentiate the interaction required
-                if (selected.name == "Safe")
-                {
-                    Safe safeScript = selected.GetComponent<Safe>();
-                    if (safeScript.CanOpen())
-                    {
-                        safeScript.Open();
-                    }
-                    else if (safeScript.CanSteal())
-                    {
-                        safeScript.Steal();
-                        goldStolen += 10;
-                    }
-                }
-                else if (selected.name == "Gold Bar")
-                {
-                    GoldBar barScript = selected.GetComponent<GoldBar>();
-                    if (barScript.CanSteal())
-                    {
-                        barScript.Steal();
-                        goldStolen += 1;
-                    }
-                }
-            }
-        }
+        Interact();
+    }
 
-        // Shooting logic
+    // Shooting logic
+    void Shoot()
+    {      
         if (gunRenderer.enabled)
         {
             gunRenderer.enabled = false;
@@ -174,8 +119,29 @@ public class PlayerController : MonoBehaviour {
         }
     }
 
-    void Move(float x, float z)
+    //Keyboard player movement
+    void Move()
 	{
+        //Keyboard Controls
+        var x = 0;
+        var z = 0;
+        if(Input.GetKey(KeyCode.W))
+        {
+            z = 1;
+        }
+        if(Input.GetKey(KeyCode.A))
+        {
+            x = -1;
+        }
+        if(Input.GetKey(KeyCode.S))
+        {
+            z = -1;
+        }
+        if(Input.GetKey(KeyCode.D))
+        {
+            x = 1;
+        }
+
         // Set the movement vector based on the axis input.
         m_movement.Set (x, 0f, z);
         
@@ -187,7 +153,8 @@ public class PlayerController : MonoBehaviour {
         this.transform.Translate(m_movement);
 	}
 
-    void Turning()
+    //Turn player towards mouse
+    void Turn()
     {
     	// Generate a plane that intersects the transform's position with an upwards normal.
     	Plane playerPlane = new Plane(Vector3.up, m_player.transform.localPosition);
@@ -216,6 +183,62 @@ public class PlayerController : MonoBehaviour {
 		}
         //Keep base rotation fixed
         transform.rotation = new Quaternion(0,0,0,0);
+    }
+
+    //Player interaction with world
+    void Interact()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            // Find the closest interactable
+            GameObject selected = null;
+            float selectedDistance = 0.0f;
+            foreach (var interactive in interactives)
+            {
+                var distance = (interactive.transform.position - transform.position).magnitude;
+                if (distance < interactionDistance && 
+                    (selected == null || selectedDistance > distance) &&
+                    interactive.activeSelf)
+                {
+                    selected = interactive;
+                    selectedDistance = distance;
+                }
+            }
+            if (selected != null)
+            {
+                // Differentiate the interaction required
+                if (selected.name == "Safe")
+                {
+                    Safe safeScript = selected.GetComponent<Safe>();
+                    if (safeScript.CanOpen())
+                    {
+                        safeScript.Open();
+                    }
+                    else if (safeScript.CanSteal())
+                    {
+                        safeScript.Steal();
+                        goldStolen += 10;
+                    }
+                }
+                else if (selected.name == "Gold Bar")
+                {
+                    GoldBar barScript = selected.GetComponent<GoldBar>();
+                    if (barScript.CanSteal())
+                    {
+                        barScript.Steal();
+                        goldStolen += 1;
+                    }
+                }
+            }
+        }
+    }
+
+    public void TakeDamage(float damage)
+    {
+        if((currentHealth -= damage) <= 0)
+        {
+           SceneManager.LoadScene("dead");
+        }
     }
 
     public float CurrentHealth
