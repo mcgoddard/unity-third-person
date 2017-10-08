@@ -36,7 +36,7 @@ public class CameraController : MonoBehaviour {
 
         Debug.DrawRay(ray.origin, ray.direction * 100, Color.red);
 
-        if(Physics.Raycast(ray, out hit, 500))
+        if(Physics.Raycast(ray, out hit, 500, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
         {
 //            Debug.Log(hit.transform.tag);
             if(hit.transform.tag != "Player")

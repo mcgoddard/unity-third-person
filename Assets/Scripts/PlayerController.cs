@@ -153,7 +153,7 @@ public class PlayerController : MonoBehaviour {
                 fireFrom.y += 1.18f;
                 Quaternion targetRotation = m_player.transform.rotation * Quaternion.Euler(0, 0, 90);
                 Ray bulletRay = new Ray(fireFrom, targetRotation * Vector3.up);
-                if (Physics.Raycast(bulletRay, out hit, fireDistance))
+                if (Physics.Raycast(bulletRay, out hit, fireDistance, Physics.DefaultRaycastLayers, QueryTriggerInteraction.Ignore))
                 {
                     gunRenderer.SetPosition(0, fireFrom);
                     gunRenderer.SetPosition(1, hit.point);
